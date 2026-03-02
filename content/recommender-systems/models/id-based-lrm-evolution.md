@@ -74,25 +74,25 @@ BERT4Rec [Sun et al., 2019] 引入双向自注意力机制和完形填空训练�
 
 ## 主要参考文献
 
-- [Resnick et al., 1994] GroupLens: An open architecture for collaborative filtering of netnews. CSCW.
-- [Sarwar et al., 2001] Item-based collaborative filtering recommendation algorithms. WWW.
-- [Funk, 2006] Netflix Update: Try This at Home. Blog post.
-- [Koren, 2008] Factorization meets the neighborhood: a multifaceted collaborative filtering model. KDD.
-- [Salakhutdinov & Mnih, 2008] Probabilistic matrix factorization. NeurIPS.
-- [Rendle, 2010] Factorization machines. ICDM.
-- [Juan et al., 2016] Field-aware factorization machines for CTR prediction. RecSys.
-- [Covington et al., 2016] Deep neural networks for YouTube recommendations. RecSys.
-- [Cheng et al., 2016] Wide & deep learning for recommender systems. DLRS@RecSys.
-- [Guo et al., 2017] DeepFM: A factorization-machine based neural network for CTR prediction. IJCAI.
-- [Wang et al., 2017] Deep & cross network for ad click predictions. ADKDD.
-- [Zhou et al., 2018] Deep interest network for click-through rate prediction. KDD.
-- [Zhou et al., 2019] Deep interest evolution network for click-through rate prediction. AAAI.
-- [Naumov et al., 2019] Deep learning recommendation model for personalization and recommendation systems. arXiv.
-- [Vaswani et al., 2017] Attention is all you need. NeurIPS.
-- [Kang & McAuley, 2018] Self-attentive sequential recommendation. ICDM.
-- [Sun et al., 2019] BERT4Rec: Sequential recommendation with bidirectional encoder representations from transformer. CIKM.
-- [Zhai et al., 2024] Actions speak louder than words: Trillion-parameter sequential transducers for generative recommendations. ICML.
-- [Zhang et al., 2024] Wukong: Towards a scaling law for large-scale recommendation. ICML.
-- [Singh et al., 2023] Better generalization with semantic IDs: A case study in ranking for recommendations. arXiv.
-- [Rajput et al., 2023] Recommender systems with generative retrieval. NeurIPS.
-- [Yuan et al., 2023] Where to go next for recommender systems? ID- vs. modality-based recommender models revisited. SIGIR.
+- [Resnick et al., 1994] [GroupLens: An open architecture for collaborative filtering of netnews.](https://dl.acm.org/doi/10.1145/192844.192905) CSCW.
+- [Sarwar et al., 2001] [Item-based collaborative filtering recommendation algorithms.](https://dl.acm.org/doi/10.1145/371920.372071) WWW.
+- [Funk, 2006] [Netflix Update: Try This at Home.](https://sifter.org/~simon/journal/20061211.html) Blog post.
+- [Koren, 2008] [Factorization meets the neighborhood: a multifaceted collaborative filtering model.](https://dl.acm.org/doi/10.1145/1401890.1401944) KDD.
+- [Salakhutdinov & Mnih, 2008] [Probabilistic matrix factorization.](https://proceedings.neurips.cc/paper/2007/hash/d7322ed717dedf1eb4e6e52a37ea7bcd-Abstract.html) NeurIPS.
+- [Rendle, 2010] [Factorization machines.](https://ieeexplore.ieee.org/document/5694074) ICDM.
+- [Juan et al., 2016] [Field-aware factorization machines for CTR prediction.](https://dl.acm.org/doi/10.1145/2959100.2959134) RecSys.
+- [Covington et al., 2016] [Deep neural networks for YouTube recommendations.](https://dl.acm.org/doi/10.1145/2959100.2959190) RecSys.
+- [Cheng et al., 2016] [Wide & deep learning for recommender systems.](https://arxiv.org/abs/1606.07792) DLRS@RecSys.
+- [Guo et al., 2017] [DeepFM: A factorization-machine based neural network for CTR prediction.](https://arxiv.org/abs/1703.04247) IJCAI.
+- [Wang et al., 2017] [Deep & cross network for ad click predictions.](https://arxiv.org/abs/1708.05123) ADKDD.
+- [Zhou et al., 2018] [Deep interest network for click-through rate prediction.](https://arxiv.org/abs/1706.06978) KDD.
+- [Zhou et al., 2019] [Deep interest evolution network for click-through rate prediction.](https://arxiv.org/abs/1809.03672) AAAI.
+- [Naumov et al., 2019] [Deep learning recommendation model for personalization and recommendation systems.](https://arxiv.org/abs/1906.00091) arXiv.
+- [Vaswani et al., 2017] [Attention is all you need.](https://arxiv.org/abs/1706.03762) NeurIPS.
+- [Kang & McAuley, 2018] [Self-attentive sequential recommendation.](https://arxiv.org/abs/1808.09781) ICDM.
+- [Sun et al., 2019] [BERT4Rec: Sequential recommendation with bidirectional encoder representations from transformer.](https://arxiv.org/abs/1904.06690) CIKM.
+- [Zhai et al., 2024] [Actions speak louder than words: Trillion-parameter sequential transducers for generative recommendations.](https://arxiv.org/abs/2402.17152) ICML.
+- [Zhang et al., 2024] [Wukong: Towards a scaling law for large-scale recommendation.](https://arxiv.org/abs/2403.02545) ICML.
+- [Singh et al., 2023] [Better generalization with semantic IDs: A case study in ranking for recommendations.](https://arxiv.org/abs/2306.08121) arXiv.
+- [Rajput et al., 2023] [Recommender systems with generative retrieval.](https://arxiv.org/abs/2305.05065) NeurIPS.
+- [Yuan et al., 2023] [Where to go next for recommender systems? ID- vs. modality-based recommender models revisited.](https://arxiv.org/abs/2208.09912) SIGIR.
