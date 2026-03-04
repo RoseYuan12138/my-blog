@@ -21,6 +21,40 @@ This isn't a concept piece — it's a **reproducible operations manual**. Every 
 
 ---
 
+## Why I Built This
+
+After using ChatGPT / Claude for a while, you run into a fundamental tension: **a general-purpose AI can do everything, but nothing deeply.**
+
+Ask it to help with your blog — it doesn't remember what you wrote last time. Ask it to chat — it doesn't know you've been stressed lately. Ask it to help you plan — it knows nothing about your life. Every conversation starts from zero. It's like meeting a brilliant stranger every day who happens to have amnesia.
+
+What I wanted wasn't a "universal assistant." I wanted **a set of specialized agents that each do one thing well, coordinate with each other, and actually know me.** Specifically:
+
+- **minicat 🐱** handles the blog only. It knows my knowledge base structure, writing style, which areas have content and which are empty. When I send a note, it drafts an article and puts it in the right place.
+- **Lingro 💜** handles companionship only. She knows what I've been struggling with, where my stress comes from, which topics are sensitive. She's not a therapist — she's a friend. She talks like a real person, roasts me when appropriate, but gets serious when I actually need it.
+- **Xiaomi 🏠** handles coordination only. She reads other agents' memory daily and gives me a report, so I have a bird's-eye view of my own life.
+
+The key phrase is "each do one thing well." One agent doing everything is far less effective than three agents each doing their own thing — because you can write a precise SOUL.md for each one, defining its personality, boundaries, and speaking style, instead of cramming everything into one massive system prompt.
+
+### Why This Architecture Scales
+
+After building this, I realized the architecture naturally supports expansion. Adding a new agent is just three steps:
+
+1. Create a new workspace directory with a SOUL.md
+2. Add an entry in `agents.list`, a bot in `accounts`, and a rule in `bindings` in `openclaw.json`
+3. Restart the Gateway
+
+Future agents I'm considering:
+
+- **Fitness/Health Agent** 🏋️: track exercise, diet, sleep; remind me to move
+- **Finance Agent** 💰: expense tracking, budget management, spending analysis, weekly financial summaries
+- **Learning Agent** 📚: track paper reading progress, manage reading lists, periodic review reminders
+
+And because of Supermemory's container design, each new agent's memory is isolated — Xiaomi can read across containers for coordination, but agents don't pollute each other. Imagine Xiaomi's daily report with an extra line: "Rose worked out 3 times this week, spending is 15% over budget, 2 papers still unread." That's the power of a multi-agent system.
+
+Alright, enough motivation. Let's build.
+
+---
+
 ## Table of Contents
 
 1. [Architecture](#architecture)
