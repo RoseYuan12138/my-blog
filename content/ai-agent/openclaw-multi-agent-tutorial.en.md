@@ -765,6 +765,8 @@ minicat → Xiaomi: Got it, draft sent to Rose for review
 
 **Every command the butler gives is visible to the master.** The multi-agent system goes from black box to glass house.
 
+![Agent coordination messages in the Telegram group](./assets/agent-group-transparency.png)
+
 ### 6.6 Pitfalls
 
 - **Silent message drop**: empty `groupAllowFrom` = all messages discarded, with no error — very hard to debug

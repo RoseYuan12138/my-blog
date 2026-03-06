@@ -766,6 +766,8 @@ minicat → 小蜜：收到，草稿已发给 Rose 确认
 
 **管家的每一条指令，主人都看得见。** 多 Agent 系统从黑盒变成玻璃房。
 
+![Agent 协调消息在 Telegram 群里的实际效果](./assets/agent-group-transparency.png)
+
 ### 6.6 踩坑
 
 - **群消息 silent drop**：`groupAllowFrom` 为空 = 全部丢弃，而且不报错，很难发现
