@@ -37,7 +37,7 @@ $L$ 一大（比如 128K），这个矩阵完全放不进 SRAM，每步都要来
 
 ## GPU 内存层级
 
-<!-- TODO: 需要补充 gpu-memory-hierarchy 图片 -->
+![GPU Memory Hierarchy](./assets/gpu-memory-hierarchy.png)
 
 SRAM 带宽是 HBM 的 **10倍以上**，但容量只有 20MB。Flash Attention 的核心目标就是尽量把计算留在 SRAM 里，减少 HBM 来回次数。
 

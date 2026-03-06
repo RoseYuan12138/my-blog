@@ -37,7 +37,7 @@ When $L$ is large (e.g., 128K), this matrix can't fit in SRAM at all. Each step 
 
 ## GPU Memory Hierarchy
 
-<!-- TODO: add gpu-memory-hierarchy image -->
+![GPU Memory Hierarchy](./assets/gpu-memory-hierarchy.png)
 
 SRAM bandwidth is **10x+ higher** than HBM, but its capacity is only ~20MB. The core goal of Flash Attention is to keep computation in SRAM as much as possible, minimizing HBM round-trips.
 
