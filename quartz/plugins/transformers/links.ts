@@ -149,10 +149,17 @@ export const CrawlLinks: QuartzTransformerPlugin<Partial<Options>> = (userOpts) 
 
                 if (!isAbsoluteUrl(node.properties.src, { httpOnly: false })) {
                   let dest = node.properties.src as RelativeURL
+                  // Force "relative" strategy for asset src attributes (images, videos, etc.)
+                  // The "shortest" strategy fails for non-markdown files because allSlugs
+                  // only contains markdown-derived slugs, causing incorrect path resolution.
+                  const assetTransformOptions: TransformOptions = {
+                    ...transformOptions,
+                    strategy: "relative",
+                  }
                   dest = node.properties.src = transformLink(
                     file.data.slug!,
                     dest,
-                    transformOptions,
+                    assetTransformOptions,
                   )
                   node.properties.src = dest
                 }
