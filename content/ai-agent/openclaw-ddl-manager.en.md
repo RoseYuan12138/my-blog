@@ -124,9 +124,82 @@ Keeps the record, removes it from daily patrol.
 
 This is the multi-agent division of labor from [[openclaw-multi-agent-tutorial]] applied to a real use case — one agent handles execution, the human handles decisions.
 
+## Cron Configuration Details
+
+The morning reminder and daily report above both use `openclaw cron add`. Here's a deeper dive.
+
+### Cron vs. Heartbeat
+
+In short:
+- **Heartbeat** is for batch periodic checks (inbox + calendar + weather all at once), running in the main session
+- **Cron** is for precise timing (every day at exactly 9 AM), isolated sessions, or pushing to specific channels
+
+The DDL system's morning reminder and daily report use cron because they need precise timing and can push directly to Telegram. The hourly patrol uses heartbeat because it needs the main session's context (recent conversation history).
+
+### Parameter Reference
+
+| Parameter | Description |
+|---|---|
+| `--cron "0 11 * * *"` | Execute daily at 11:00 (standard 5-field cron expression) |
+| `--tz "America/Los_Angeles"` | Timezone; defaults to Gateway host timezone if omitted |
+| `--session isolated` | Run in an isolated session, keeps main session history clean |
+| `--message` | The prompt sent to the agent |
+| `--announce` | Push output to a specified channel when done |
+| `--channel telegram` | Push channel |
+| `--to` | Telegram chat ID (personal or group) |
+
+### Cron Expression Cheat Sheet
+
+```
+┌────────── minute (0-59)
+│ ┌──────── hour (0-23)
+│ │ ┌────── day of month (1-31)
+│ │ │ ┌──── month (1-12)
+│ │ │ │ ┌── day of week (0-6, 0=Sunday)
+│ │ │ │ │
+0 11 * * *    Every day at 11:00
+0 21 * * *    Every day at 21:00
+0 9 * * 1     Every Monday at 9:00
+0 9,18 * * *  Every day at 9:00 and 18:00
+0 */4 * * *   Every 4 hours
+```
+
+### What Is an Isolated Session?
+
+Cron's `--session isolated` creates a **brand new independent session** under `cron:<jobId>`. Each run starts with a fresh context and no conversation history. Benefits:
+
+- Keeps repeated report content out of the main session
+- Can use `--model` to specify a different model
+- Output goes directly via `--announce` — the main session doesn't need to wake up
+
+### Managing Cron Jobs
+
+```bash
+# List all jobs
+openclaw cron list
+
+# Trigger a job manually
+openclaw cron run <job-id>
+
+# View run history
+openclaw cron runs --id <job-id>
+
+# Edit a job
+openclaw cron edit <job-id> --message "new prompt"
+
+# Delete a job
+openclaw cron remove <job-id>
+```
+
+### Notes
+
+- The Gateway must be running for cron jobs to execute (don't close your Mac's lid, or use `caffeinate` to prevent sleep — see [[openclaw-blog-workflow]])
+- On-the-hour cron jobs (like `0 * * * *`) have up to 5 minutes of random stagger by default to avoid API spikes. Fixed-time jobs (like `0 11 * * *`) are not affected
+- For second-level precision, use a 6-field expression: `0 0 11 * * *`
+
 ## References
 
-- [[openclaw-tips-websearch-caffeinate-cron]] — cron configuration in detail
 - [[openclaw-multi-agent-tutorial]] — multi-agent collaboration basics
 - [OpenClaw Heartbeat Docs](https://docs.openclaw.ai/gateway/heartbeat)
 - [OpenClaw Cron Docs](https://docs.openclaw.ai/automation/cron-jobs)
+- [Cron vs Heartbeat Guide](https://docs.openclaw.ai/automation/cron-vs-heartbeat)

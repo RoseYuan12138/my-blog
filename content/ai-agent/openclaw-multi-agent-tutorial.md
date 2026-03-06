@@ -64,9 +64,10 @@ english: ai-agent/openclaw-multi-agent-tutorial.en
 5. [Phase 3：小蜜——管家 Agent 的创建](#phase-3小蜜管家-agent-的创建)
 6. [Phase 4：Telegram 多 Bot 配置](#phase-4telegram-多-bot-配置)
 7. [Phase 5：Supermemory 共享记忆层](#phase-5supermemory-共享记忆层)
-8. [OpenClaw 命令速查](#openclaw-命令速查)
-9. [踩坑记录](#踩坑记录)
-10. [所有文件清单与改动说明](#所有文件清单与改动说明)
+8. [Phase 6：让多 Agent 通信透明可见](#phase-6让多-agent-通信透明可见)
+9. [OpenClaw 命令速查](#openclaw-命令速查)
+10. [踩坑记录](#踩坑记录)
+11. [所有文件清单与改动说明](#所有文件清单与改动说明)
 
 ---
 
@@ -704,6 +705,72 @@ Supermemory 的免费版不支持 OpenClaw 插件集成（会返回 403 "require
 2. **用本地记忆文件**：每个 Agent 的 `memory/` 目录是主要记忆源，日报照常跑
 
 我们最终选了方案 2——本地文件优先，Supermemory 作为补充。这意味着即使 Supermemory 永远不升级，系统也能正常工作。
+
+---
+
+## Phase 6：让多 Agent 通信透明可见
+
+多 Agent 系统跑起来之后，有个问题：Agent 之间用 `sessions_send` 互发消息，Rose 完全看不见在发什么。解决方案：建一个 Telegram 群，让所有跨 Agent 的协调消息都透明呈现。
+
+### 6.1 问题
+
+小蜜可以发消息给 minicat，minicat 再回复小蜜——但这些消息都走 `sessions_send`，只在 Gateway 内部流转，Rose 作为旁观者完全不知道发生了什么。
+
+### 6.2 建群并拉入所有 bot
+
+在 Telegram 里新建群组，把所有 bot 账号都添加进来（@xiaomi_bot、@minicat_bot 等）。
+
+### 6.3 找到群的 chat ID
+
+OpenClaw 已经在消费 Telegram 的 `getUpdates`，直接调 API 看不到群消息。需要从 Gateway 日志里捞：
+
+```bash
+grep "chatId" /tmp/openclaw/openclaw-YYYY-MM-DD.log | grep "group\|supergroup"
+```
+
+找到类似 `-5104805503` 这样的负数 ID。
+
+### 6.4 配置群白名单
+
+OpenClaw 默认 `groupPolicy` 是 allowlist 且白名单为空，群消息会被 silent drop（静默丢弃，不报错）。在 `openclaw.json` 里补上：
+
+```json
+{
+  "agents": {
+    "xiaomi": {
+      "groupPolicy": "allowlist",
+      "groupAllowFrom": ["-5104805503"]
+    },
+    "minicat": {
+      "groupPolicy": "allowlist",
+      "groupAllowFrom": ["-5104805503"]
+    }
+  }
+}
+```
+
+### 6.5 发消息时同时发群
+
+Agent 在发跨 Agent 通知的同时，额外发一条到群里：
+
+```
+message(action=send, target="-5104805503", message="[minicat → 小蜜] 博客草稿已准备好，等待确认")
+```
+
+配好之后，Rose 在群里能实时看到 Agent 之间的协调：
+
+```
+小蜜 → minicat：Rose 想把 DDL 系统做成博客，请整理草稿
+minicat → 小蜜：收到，草稿已发给 Rose 确认
+```
+
+**管家的每一条指令，主人都看得见。** 多 Agent 系统从黑盒变成玻璃房。
+
+### 6.6 踩坑
+
+- **群消息 silent drop**：`groupAllowFrom` 为空 = 全部丢弃，而且不报错，很难发现
+- **看不到群 chat ID**：`getUpdates` 被 OpenClaw 消费了，只能从 Gateway 日志捞
+- **重启断连**：改完 `openclaw.json` 要 `openclaw gateway restart`，短暂断连几秒
 
 ---
 

@@ -124,9 +124,82 @@ DDL_archive/
 
 这是 [[openclaw-multi-agent-tutorial]] 里讲的多 Agent 分工模式在实际场景里的应用——一个 Agent 专注执行，人只做决策。
 
+## Cron 配置详解
+
+上面的晨间提醒和日报都用了 `openclaw cron add`，这里展开说明。
+
+### Cron 还是 Heartbeat？
+
+简单说：
+- **Heartbeat** 适合批量周期性检查（收件箱 + 日历 + 天气一起查），走主 session
+- **Cron** 适合精确定时（每天早上 9 点整）、需要隔离 session、或要送到指定频道
+
+DDL 系统的晨间提醒和日报用 cron 更合适，因为时间精确 + 内容可以直接推到 Telegram。hourly 巡逻用 heartbeat，因为它需要主 session 的上下文（了解最近的对话）。
+
+### 参数说明
+
+| 参数 | 说明 |
+|---|---|
+| `--cron "0 11 * * *"` | 每天 11:00 执行（标准 5 字段 cron 表达式） |
+| `--tz "America/Los_Angeles"` | 时区，不加默认用 Gateway 主机时区 |
+| `--session isolated` | 跑在独立 session，不污染主 session 历史 |
+| `--message` | 给 Agent 的提示词 |
+| `--announce` | 完成后把输出推送到指定频道 |
+| `--channel telegram` | 推送渠道 |
+| `--to` | Telegram chat ID（可以是个人或群组） |
+
+### Cron 表达式速查
+
+```
+┌────────── 分钟 (0-59)
+│ ┌──────── 小时 (0-23)
+│ │ ┌────── 日 (1-31)
+│ │ │ ┌──── 月 (1-12)
+│ │ │ │ ┌── 周 (0-6，0=周日)
+│ │ │ │ │
+0 11 * * *    每天 11:00
+0 21 * * *    每天 21:00
+0 9 * * 1     每周一 9:00
+0 9,18 * * *  每天 9:00 和 18:00
+0 */4 * * *   每 4 小时
+```
+
+### Isolated Session 是什么？
+
+Cron 的 `--session isolated` 会在 `cron:<jobId>` 下开一个**全新的独立 session**，每次运行都是全新上下文，不带任何历史对话。好处是：
+
+- 不会把重复的日报内容堆进主 session
+- 可以用 `--model` 指定不同模型
+- 输出通过 `--announce` 直接推送，不需要主 session 醒来处理
+
+### 管理 Cron 任务
+
+```bash
+# 查看所有任务
+openclaw cron list
+
+# 立刻手动触发一次
+openclaw cron run <job-id>
+
+# 查看运行历史
+openclaw cron runs --id <job-id>
+
+# 修改任务
+openclaw cron edit <job-id> --message "新的提示词"
+
+# 删除任务
+openclaw cron remove <job-id>
+```
+
+### 注意事项
+
+- Gateway 必须持续运行，cron 才会执行（Mac Mini 别合盖，或者用 `caffeinate` 防休眠，参见 [[openclaw-blog-workflow]]）
+- 顶点时刻的 cron（如 `0 * * * *`）默认有最多 5 分钟的随机 stagger，避免集中打 API。固定时间（如 `0 11 * * *`）不受影响
+- 想要精确到秒，用 6 字段表达式：`0 0 11 * * *`
+
 ## 参考
 
-- [[openclaw-tips-websearch-caffeinate-cron]] — cron 配置详解
 - [[openclaw-multi-agent-tutorial]] — 多 Agent 协作基础
 - [OpenClaw Heartbeat 文档](https://docs.openclaw.ai/gateway/heartbeat)
 - [OpenClaw Cron 文档](https://docs.openclaw.ai/automation/cron-jobs)
+- [Cron vs Heartbeat 选择指南](https://docs.openclaw.ai/automation/cron-vs-heartbeat)

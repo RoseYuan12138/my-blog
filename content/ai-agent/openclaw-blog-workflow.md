@@ -293,6 +293,76 @@ git push --dry-run origin v4   # 测试权限
 
 ---
 
+## 基础环境配置
+
+搭好 OpenClaw + Quartz 之后，还有几个配置能让日常使用更顺畅。
+
+### 给 Agent 加上 web_search
+
+OpenClaw 的 `web_search` 工具默认走 Brave Search API，需要自己申请 API key。
+
+**申请步骤：**
+
+1. 去 [Brave Search API](https://brave.com/search/api/) 注册账号
+2. 在 dashboard 选择 **Data for Search** 方案（注意：**不是** Data for AI，那个不兼容）
+3. 生成 API key
+
+**配置方式（推荐）：**
+
+```bash
+openclaw configure --section web
+```
+
+会把 key 存进 `~/.openclaw/openclaw.json`，对应字段是：
+
+```json5
+{
+  tools: {
+    web: {
+      search: {
+        provider: "brave",
+        apiKey: "YOUR_BRAVE_API_KEY",
+      },
+    },
+  },
+}
+```
+
+也可以直接设环境变量 `BRAVE_API_KEY`（放在 `~/.openclaw/.env`）。
+
+配好之后，Agent 就能用 `web_search` 工具了，对话里问「搜一下…」会自动触发。
+
+**其他 provider 可选项：**
+
+| Provider | 特点 | API Key |
+|---|---|---|
+| Brave（默认） | 快、结构化结果、有免费额度 | `BRAVE_API_KEY` |
+| Perplexity | AI 综合答案 + 引用 | `OPENROUTER_API_KEY` 或 `PERPLEXITY_API_KEY` |
+| Gemini | Google Search grounding | `GEMINI_API_KEY` |
+
+没有显式配置 provider 时，OpenClaw 会按 key 的存在顺序自动探测（Brave → Gemini → Kimi → Perplexity → Grok）。
+
+### 防止 Mac 休眠（caffeinate）
+
+Agent 跑在本地 Mac 上，一旦 Mac 进入睡眠，Gateway 就断了，定时任务也会停。用系统自带的 `caffeinate` 命令解决：
+
+```bash
+caffeinate -i -m
+```
+
+- `-i`：阻止 idle 休眠（系统空闲时不睡）
+- `-m`：阻止磁盘 idle sleep
+
+Terminal 保持前台运行就持续生效。想配合 Gateway 一起启动，可以写个 shell 脚本：
+
+```bash
+#!/bin/bash
+caffeinate -i -m &
+openclaw gateway start
+```
+
+---
+
 ## 总结
 
 核心公式：**Mac Mini（硬件） + OpenClaw（agent） + Quartz（博客） + 两个指令文件（规则）**。

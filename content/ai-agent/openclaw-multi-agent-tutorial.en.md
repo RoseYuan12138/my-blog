@@ -64,9 +64,10 @@ Alright, enough motivation. Let's build.
 5. [Phase 3: Creating Xiaomi (Butler Agent)](#phase-3-creating-xiaomi-butler-agent)
 6. [Phase 4: Multi-Bot Telegram Configuration](#phase-4-multi-bot-telegram-configuration)
 7. [Phase 5: Supermemory Shared Memory Layer](#phase-5-supermemory-shared-memory-layer)
-8. [OpenClaw Command Reference](#openclaw-command-reference)
-9. [Pitfalls & Fixes](#pitfalls--fixes)
-10. [Complete File Inventory](#complete-file-inventory)
+8. [Phase 6: Making Multi-Agent Communication Transparent](#phase-6-making-multi-agent-communication-transparent)
+9. [OpenClaw Command Reference](#openclaw-command-reference)
+10. [Pitfalls & Fixes](#pitfalls--fixes)
+11. [Complete File Inventory](#complete-file-inventory)
 
 ---
 
@@ -703,6 +704,72 @@ Supermemory's free tier doesn't support the OpenClaw plugin integration (returns
 2. **Use local memory files**: each agent's `memory/` directory is the primary memory source; daily reports work fine without Supermemory
 
 We went with option 2 — local files first, Supermemory as supplement. This means even if Supermemory is never upgraded, the system works normally.
+
+---
+
+## Phase 6: Making Multi-Agent Communication Transparent
+
+Once the multi-agent system is running, there's a visibility problem: agents communicate via `sessions_send`, but Rose can't see any of it. The solution: create a Telegram group where all cross-agent coordination messages are visible.
+
+### 6.1 The Problem
+
+Xiaomi can send messages to minicat, and minicat can reply — but these messages flow through `sessions_send`, staying internal to the Gateway. Rose, as the observer, has no idea what's happening.
+
+### 6.2 Create a Group and Add All Bots
+
+Create a new Telegram group and add all bot accounts (@xiaomi_bot, @minicat_bot, etc.).
+
+### 6.3 Find the Group Chat ID
+
+Since OpenClaw is already consuming Telegram's `getUpdates`, calling the API directly won't show group messages. You need to extract it from Gateway logs:
+
+```bash
+grep "chatId" /tmp/openclaw/openclaw-YYYY-MM-DD.log | grep "group\|supergroup"
+```
+
+Look for a negative number like `-5104805503`.
+
+### 6.4 Configure Group Allowlist
+
+OpenClaw defaults to `groupPolicy: "allowlist"` with an empty allowlist, which means group messages get silently dropped (no error, no log). Add the group ID in `openclaw.json`:
+
+```json
+{
+  "agents": {
+    "xiaomi": {
+      "groupPolicy": "allowlist",
+      "groupAllowFrom": ["-5104805503"]
+    },
+    "minicat": {
+      "groupPolicy": "allowlist",
+      "groupAllowFrom": ["-5104805503"]
+    }
+  }
+}
+```
+
+### 6.5 Send to Group Alongside Cross-Agent Messages
+
+When an agent sends a cross-agent notification, it also sends a copy to the group:
+
+```
+message(action=send, target="-5104805503", message="[minicat → Xiaomi] Blog draft is ready, awaiting confirmation")
+```
+
+Once configured, Rose can see agent coordination in real time in the group:
+
+```
+Xiaomi → minicat: Rose wants to turn the DDL system into a blog post, please draft it
+minicat → Xiaomi: Got it, draft sent to Rose for review
+```
+
+**Every command the butler gives is visible to the master.** The multi-agent system goes from black box to glass house.
+
+### 6.6 Pitfalls
+
+- **Silent message drop**: empty `groupAllowFrom` = all messages discarded, with no error — very hard to debug
+- **Can't see group chat ID**: `getUpdates` is consumed by OpenClaw, so you have to extract it from Gateway logs
+- **Restart disconnect**: after editing `openclaw.json`, you need `openclaw gateway restart` — expect a few seconds of downtime
 
 ---
 

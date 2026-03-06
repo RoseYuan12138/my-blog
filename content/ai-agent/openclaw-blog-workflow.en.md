@@ -285,6 +285,76 @@ If configured correctly, the bot will organize it into an article, send a previe
 
 ---
 
+## Essential Environment Setup
+
+After setting up OpenClaw + Quartz, a few extra configurations make daily use much smoother.
+
+### Adding web_search to Your Agent
+
+OpenClaw's `web_search` tool uses the Brave Search API by default. You'll need your own API key.
+
+**How to get one:**
+
+1. Register at [Brave Search API](https://brave.com/search/api/)
+2. In the dashboard, select the **Data for Search** plan (note: **not** Data for AI — that one isn't compatible)
+3. Generate an API key
+
+**Configuration (recommended):**
+
+```bash
+openclaw configure --section web
+```
+
+This stores the key in `~/.openclaw/openclaw.json`:
+
+```json5
+{
+  tools: {
+    web: {
+      search: {
+        provider: "brave",
+        apiKey: "YOUR_BRAVE_API_KEY",
+      },
+    },
+  },
+}
+```
+
+Alternatively, set the `BRAVE_API_KEY` environment variable (in `~/.openclaw/.env`).
+
+Once configured, the agent can use the `web_search` tool — asking "search for..." in conversation triggers it automatically.
+
+**Other provider options:**
+
+| Provider | Features | API Key |
+|---|---|---|
+| Brave (default) | Fast, structured results, free tier | `BRAVE_API_KEY` |
+| Perplexity | AI-synthesized answers + citations | `OPENROUTER_API_KEY` or `PERPLEXITY_API_KEY` |
+| Gemini | Google Search grounding | `GEMINI_API_KEY` |
+
+Without explicit provider configuration, OpenClaw auto-detects based on available keys (Brave → Gemini → Kimi → Perplexity → Grok).
+
+### Preventing Mac Sleep (caffeinate)
+
+When the agent runs on a local Mac, the system going to sleep kills the Gateway and stops all scheduled tasks. Use the built-in `caffeinate` command:
+
+```bash
+caffeinate -i -m
+```
+
+- `-i`: prevent idle sleep
+- `-m`: prevent disk idle sleep
+
+Keep the Terminal window running. To pair it with Gateway startup, write a shell script:
+
+```bash
+#!/bin/bash
+caffeinate -i -m &
+openclaw gateway start
+```
+
+---
+
 ## Takeaway
 
 The formula: **Mac Mini (hardware) + OpenClaw (agent) + Quartz (blog) + two instruction files (rules)**.
