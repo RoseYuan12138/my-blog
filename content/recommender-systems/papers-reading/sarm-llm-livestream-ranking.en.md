@@ -1,197 +1,182 @@
 ---
-title: "SARM: Reshaping Live-Streaming Ranking with LLM Semantic Anchors"
+title: "SARM: End-to-End Live-Streaming Ranking with LLM Semantic Anchors"
 date: 2026-03-06
 tags:
   - recommender-systems
-  - large-language-models
   - live-streaming
-  - ranking
+  - multimodal
+  - LLM
+  - Kuaishou
 lang: en
 chinese: recommender-systems/papers-reading/sarm-llm-livestream-ranking
 ---
 
 > 🌐 [中文版](./sarm-llm-livestream-ranking.md)
 
-Paper reading notes: [SARM: LLM-Augmented Semantic Anchor for End-to-End Live-Streaming Ranking](https://arxiv.org/abs/2602.09401) (Kuaishou, 2026)
+Paper reading note: [LLM-Augmented Semantic Anchor for End-to-End Live-Streaming Ranking](https://arxiv.org/abs/2602.09401) (Kuaishou Technology, 2026)
 
 ## Core Idea
 
-Live-streaming recommendation is harder than short-video recommendation because content is real-time, unstructured, and multimodal. Existing approaches either use discrete abstractions (tags, Semantic IDs) that sacrifice semantic precision, or dense MLLM embeddings that are weakly aligned with ranking objectives. SARM's key insight: **treat LLM-generated natural language descriptions ("semantic anchors") as first-class ranking units that are directly optimized end-to-end**, rather than frozen feature inputs.
+Live-streaming recommendation faces non-stationary content semantics. Existing approaches either compress semantics into discrete tags (information bottleneck) or extract dense embeddings independently (misaligned with ranking objectives). SARM embeds LLM-generated natural-language descriptions — "semantic anchors" — directly into ranking optimization, enabling end-to-end joint training of semantic understanding and ranking. A lightweight encoder and asymmetric deployment strategy keep latency under control.
 
-## Method Comparison
+## Problem Background
 
-![Existing methods vs SARM](./assets/sarm-method-comparison.png)
+![Comparison of three semantic representation approaches: discrete abstraction, dense embeddings, SARM semantic anchors](./assets/sarm-semantic-comparison.png)
 
-The paper categorizes existing approaches into three types, each with clear limitations:
+Live-streaming poses unique challenges:
 
-- **Discrete semantics** (Tags / Semantic IDs): constrained by fixed vocabularies, losing fine-grained information. "Singing" and "anime-style singing" may collapse to the same tag
-- **Dense embeddings** (MLLM Embedding): semantically rich but weakly aligned with ranking—embeddings are optimized for understanding tasks, not CTR
-- **SARM**: preserves full semantics via natural language while optimizing token embeddings end-to-end under ranking loss
+- **Non-stationary semantics**: Content changes minute by minute — no time for offline pre-analysis like with short videos
+- **Strict latency requirements**: Real-time serving with no tolerance for large model inference
+- **Cold start**: New streamers have no behavioral history; content signals must carry the load
+
+Limitations of existing approaches:
+
+1. **Discrete semantic abstractions** (Tags / Semantic IDs): Cluster or RQ-VAE compress multimodal content into a finite vocabulary. Interpretable, but the **discrete bottleneck** is unavoidable — fine-grained semantics get lost
+2. **Dense multimodal embeddings**: Preserve high-dimensional semantics, but extracted independently and weakly aligned with ranking objectives — and deploying large encoders online is prohibitively expensive
+
+The shared problem: **content understanding and ranking optimization are decoupled by an intermediate layer, preventing end-to-end training**.
 
 ## System Architecture
 
-![SARM system architecture](./assets/sarm-architecture.png)
+![SARM overall architecture: semantic anchor generation → SAE encoding → Memory Bank → ranking model](./assets/sarm-architecture.png)
 
-### Semantic Anchor Generation
+SARM consists of three core components: **Semantic Anchors**, **Semantic Anchor Encoder (SAE)**, and an **end-to-end ranking model**.
 
-A fine-tuned MLLM generates natural language descriptions for each live stream across six dimensions offline: Point of Interest, Theme, Topic, Target Audience, Format, and Scene.
+### 1. Semantic Anchors
 
-For example: "Cute girl interaction, anime-style singing; Sweet talent performance; Fashion outfit, emotional discussions; Appearance fans, voice enthusiasts; Solo livestream; Home indoor"
+A fine-tuned MLLM (based on Qwen-VL series) generates structured natural-language descriptions for each streamer **offline**. Three input modalities:
 
-### Semantic Anchor Encoder (SAE)
+- **Visual keyframes**: ~20 dynamically sampled frames per stream, prioritizing close-up faces and representative scenes
+- **Audio transcription**: ASR within fixed temporal windows aligned with sampled keyframes
+- **User comments**: Filtered by engagement value; top 32 representative comments retained
 
-![SAE and Gated Fusion details](./assets/sarm-sae-gated-fusion.png)
+Generated anchors cover six dimensions: **POI, Theme, Topic, Target Audience, Format, Scene**.
 
-SAE is the core technical contribution, addressing three problems:
-
-**1. Live-Streaming Tokenizer**
-
-Standard LLM tokenizers fragment domain-specific terms—"PUBG" becomes P/UB/G, "anime-style singing" splits into multiple subwords. The paper runs BPE on the semantic anchor corpus to merge frequently co-occurring domain tokens into atomic units:
+Formally, a streamer $\mathbf{s}$'s semantic anchor is a token sequence:
 
 $$A_s = \{t_1, t_2, \ldots, t_n\}$$
 
-Merge rule: $(t_a, t_b) \to u, \quad u \in V_{\text{new}}$
+Key design: anchor tokens are not frozen external features — they are **learnable parameters jointly optimized within the ranking loss**, updated by ranking gradients. This is the fundamental departure from SIDs and dense embeddings.
 
-**2. Gated Fusion**
+### 2. Semantic Anchor Encoder (SAE)
 
-The key question: how to inject domain-specific token knowledge into a pretrained LLM without destroying its language understanding capabilities?
+![SAE gated fusion module in detail](./assets/sarm-gated-fusion.png)
 
-New tokenizer domain tokens go through an independent embedding lookup table producing $e'_i$, then fuse with the LLM's hidden state $h_i$ via a gating mechanism:
+Using a large LLM as the encoder is too slow. But small models have a concrete problem: live-streaming domain terms (e.g., "Lao Tie", "PUBG") get fragmented by general-purpose tokenizers, and lightweight models can't reconstruct the semantics from subword pieces.
 
-$$k_i = W_K e'_i, \quad v_i = W_V e'_i$$
+SAE's solution: **dual-token gated fusion**.
 
-$$\alpha_i = \sigma\left(\frac{\text{RMSNorm}(h_i)^T \cdot \text{RMSNorm}(k_i)}{\sqrt{d}}\right)$$
+#### Live-Streaming Tokenizer
 
-$$h'_i = h_i + \alpha_i \cdot v_i$$
+Run BPE merging on historical anchor corpora to merge frequently co-occurring terms into atomic tokens:
 
-Intuition: $\alpha_i$ is a [0,1] gate that injects domain knowledge only when relevant to the current hidden state, otherwise preserving the LLM's original representation.
+$$\text{PUBG} \rightarrow (t_1, t_2, t_3) = ({\rm P}, {\rm UB}, {\rm G}) \quad \xrightarrow{\text{BPE}} \quad \text{[PUBG]}$$
 
-**3. Lightweight Encoder**
+Merge threshold: 100k occurrences. Incrementally updated daily.
 
-A 4-layer BERT-style encoder with rotary positional encoding, outputting the CLS token as the aggregated semantic anchor representation:
+#### Gated Fusion
 
-$$h = \text{SAE}(A_s, A'_s), \quad h_{\text{CLS}} = h[0]$$
+Two token sequences processed in parallel: the base LLM encodes the original sequence to get hidden states $h_i$; the domain tokenizer encodes the augmented sequence to get embeddings $e_i$. Learnable gates fuse them:
 
-### Identity-Aware Representation
+$$\bm{k}_i = \mathbf{W}_K \bm{e}_i, \quad \bm{v}_i = \mathbf{W}_V \bm{e}_i$$
 
-Semantic anchors alone cannot distinguish different streamers within the same category. The paper introduces learnable author ID embeddings $h^a_{\text{id}}$, fused with semantic representations via cross-attention:
+$$\alpha_i = \sigma\!\left(\frac{\text{RMSNorm}(\bm{h}_i)^\top \text{RMSNorm}(\bm{k}_i)}{\sqrt{d}}\right)$$
 
-$$h^a_{\text{TAR}} = \text{CrossAttention}(h^a_{\text{id}},\; h,\; h)$$
+$$\bm{h}'_i = \bm{h}_i + \alpha_i \cdot \bm{v}_i$$
 
-Each streamer gets both category-level semantics ("singing streamer") and individual-level features ("this specific singing streamer").
+The scalar gate $\alpha_i$ controls how much domain semantics to inject at each position — **on-demand fusion** rather than hard replacement, preserving the base model's general language understanding.
 
-### User Interest Modeling
+#### Lightweight Backbone
 
-Takes the most recent $m$ streamers' CLS representations from the user's viewing history, encoded through a Transformer and mean pooling:
+4-layer BERT-style encoder with single-head attention and RoPE. The `[CLS]` token provides the aggregated representation $h_\text{CLS}$.
 
-$$h^u = (h^{a_0}_{\text{CLS}}, h^{a_1}_{\text{CLS}}, \ldots, h^{a_m}_{\text{CLS}})$$
+To model both content semantics and streamer identity signals, an explicit author ID embedding is fused via cross-attention:
 
-$$h^u_{\text{UIN}} = \text{MeanPooling}(\text{Transformer}(h^u))$$
+$$\bm{h}^\text{a}_\text{TAR} = \text{CrossAttention}(\bm{h}^\text{a}_{id}, \bm{h}, \bm{h})$$
 
-### Ranking Model
+### 3. End-to-End Ranking Model
 
-All three semantic representations are concatenated with conventional ranking features and fed into the multi-task ranking backbone:
+**Author side**: $h^a_\text{CLS}$ (semantics) + $h^a_\text{TAR}$ (identity-aware)
 
-$$\hat{y}^{\text{xtr}} = \text{MultiTask}(\text{Concat}[h^a_{\text{CLS}},\; h^a_{\text{TAR}},\; h^u_{\text{UIN}},\; h_{\text{rank}}])$$
+**User side**: Retrieve historical streamer embeddings from Memory Bank, apply Transformer + MeanPooling:
+
+$$\bm{h}^u_\text{UIN} = \text{MeanPooling}\big(\text{Transformer}(\bm{h}^u)\big)$$
+
+Concat into the existing multi-task ranking backbone:
+
+$$\hat{y} = \text{MultiTask}\bigl(\text{Concat}[h^a_\text{CLS},\, h^a_\text{TAR},\, h^u_\text{UIN},\, h_\text{rank}]\bigr)$$
 
 ## Training Objectives
 
-### Main Ranking Loss
+Main task: multi-objective BCE over multiple engagement signals (CTR, WTR, LVTR, GTR, etc.):
 
-Multi-task binary cross-entropy across four engagement signals—CTR, WTR (watch time rate), LVTR (long view time rate), GTR (gift rate):
+$$\mathcal{L}_\text{rec} = -\sum_{\text{xtr}}^{\text{Tasks}} \Bigl(y^\text{xtr} \log \hat{y}^\text{xtr} + (1 - y^\text{xtr}) \log(1 - \hat{y}^\text{xtr})\Bigr)$$
 
-$$\mathcal{L}_{\text{rec}} = -\sum_{\text{xtr}}^{\text{Tasks}} \left( y^{\text{xtr}} \log \hat{y}^{\text{xtr}} + (1 - y^{\text{xtr}}) \log(1 - \hat{y}^{\text{xtr}}) \right)$$
+Auxiliary task: a lightweight CTR prediction head directly supervises the semantic representation:
 
-### Auxiliary CTR Loss
+$$\hat{y}_\text{aux} = \text{MLP}(\text{Concat}[h^a_\text{CLS}, h^a_\text{TAR}])$$
 
-Joint training of semantic encoding and ranking creates alignment challenges between textual understanding and discriminative ranking spaces. An auxiliary CTR prediction head on author-side representations stabilizes convergence:
+$$\mathcal{L}_\text{aux} = -y \log \hat{y}_\text{aux} - (1 - y) \log(1 - \hat{y}_\text{aux})$$
 
-$$\hat{y}_{\text{aux}} = \text{MLP}(\text{Concat}[h^a_{\text{CLS}},\; h^a_{\text{TAR}}])$$
+Final loss:
 
-$$\mathcal{L}_{\text{aux}} = -y \log \hat{y}_{\text{aux}} - (1-y) \log(1-\hat{y}_{\text{aux}})$$
+$$\mathcal{L} = \mathcal{L}_\text{rec} + \lambda \mathcal{L}_\text{aux}$$
 
-### Total Loss
-
-$$\mathcal{L} = \mathcal{L}_{\text{rec}} + \lambda \mathcal{L}_{\text{aux}}$$
-
-The auxiliary loss provides direct supervision to author-side representations, preventing gradient instability from indirect propagation through the ranking backbone.
-
-## Deployment Architecture
-
-SARM uses an asymmetric deployment that elegantly solves the LLM encoding latency problem:
-
-**Author side** (offline): Daily MLLM generation → SAE encoding + ranking optimization via streaming training → cached in Memory Bank indexed by author ID: $M[a] = (h^a_{\text{CLS}}, h^a_{\text{TAR}})$
-
-**User side** (online): Consistent between training and inference, pulling author representations from Memory Bank.
-
-Inference requires only O(1) Memory Bank lookups—no real-time SAE computation—so latency barely increases.
+The auxiliary loss provides direct ranking supervision to the semantic representations, preventing the optimization mismatch between semantic space and ranking space from destabilizing training.
 
 ## Experimental Results
 
-### Offline Experiments
+### Offline Comparison (Kuaishou live-streaming dataset)
 
-Evaluated on 400 million users and 3 million streamers, across 4 tasks × 2 metrics (AUC / GAUC):
-
-| Model | CTR AUC | CTR GAUC | WTR AUC | WTR GAUC | LVTR AUC | LVTR GAUC | GTR AUC | GTR GAUC |
-|---|---|---|---|---|---|---|---|---|
-| Base | 0.8387 | 0.6453 | 0.9217 | 0.6500 | 0.8928 | 0.7542 | 0.9792 | 0.7319 |
-| +Tags | 0.8390 | 0.6457 | 0.9220 | 0.6510 | 0.8932 | 0.7542 | 0.9794 | 0.7324 |
-| +SIDs | 0.8389 | 0.6469 | 0.9221 | 0.6536 | 0.8936 | 0.7553 | 0.9799 | 0.7324 |
-| +MLLM Emb | 0.8385 | 0.6451 | 0.9210 | 0.6475 | 0.8932 | 0.7551 | 0.9790 | 0.7320 |
-| **SARM** | **0.8411** | **0.6485** | **0.9232** | **0.6522** | **0.8959** | **0.7580** | **0.9825** | **0.7369** |
-
-Key observations:
-
-- MLLM Embedding actually underperforms Base on CTR and WTR—confirming the "dense embeddings misaligned with ranking" hypothesis
-- Semantic IDs show decent GAUC gains but limited AUC improvement, suggesting discretization loses cross-category fine-grained distinctions
-- SARM leads across all 8 metrics, with GTR GAUC improvement of +0.50%—highly significant in industrial settings
-
-### Ablation Analysis
-
-| Replaced Component | CTR AUC Δ | CTR GAUC Δ | LVTR AUC Δ | LVTR GAUC Δ |
+| Method | CTR | WTR | LVTR | GTR |
 |---|---|---|---|---|
-| Standard Tokenizer replacing Live Tokenizer | +0.07% | +0.10% | +0.08% | +0.11% |
-| Removing Gated Fusion | +0.09% | +0.14% | +0.12% | +0.22% |
-| Removing Cross Attention | +0.09% | +0.22% | +0.20% | +0.25% |
-| [CLS] Sequence replacing full approach | +0.18% | +0.30% | +0.27% | +0.33% |
+| Base | — | — | — | — |
+| + Discrete SID | +△ | +△ | +△ | +△ |
+| + Dense Embedding | +△ | +△ | +△ | +△ |
+| **SARM (ours)** | **best** | **best** | **best** | **best** |
 
-Removing identity-aware Cross Attention has the largest GAUC impact (+0.22%/+0.25%), confirming that individual-level representations are critical for ranking.
+(Exact numbers in Table 1 of the paper; SARM achieves best on all metrics, highlighted in blue)
+
+### Ablation
+
+Key findings:
+- Removing auxiliary loss → unstable training, oscillating loss curves
+- Removing domain tokenizer → AUC drops for domain-specific terms, cold-start metrics degrade noticeably
+- Removing Memory Bank → online latency becomes unacceptable
 
 ### Online A/B Tests
 
-| Platform | Exposure | Watch Count | Watch Time | Click | Gift | Effective View | Follow |
-|---|---|---|---|---|---|---|---|
-| Kuaishou | +0.424% | +0.189% | +0.092% | +0.982% | +0.482% | +0.070% | +0.805% |
-| Kuaishou Lite | +1.190% | +0.397% | +0.962% | +0.562% | +1.287% | +0.340% | +0.522% |
+Fully deployed on Kuaishou live-streaming, **serving 400M+ daily active users**, with consistent improvements across multiple online metrics in long-term A/B tests.
 
-Kuaishou Lite shows larger gains, possibly because its users are more sensitive to recommendation quality.
+## Asymmetric Deployment
 
-### Computational Overhead
+![SARM asymmetric deployment pipeline: Memory Bank for low-latency online serving](./assets/sarm-deployment.png)
 
-| Metric | Base | SARM |
-|---|---|---|
-| CPU Usage | 48.69% | 51.71% |
-| GPU Usage | 77.54% | 80.29% |
-| Training Time | 1.00x | 1.08x |
-| QPS | 280.71 | 271.30 |
-| Inference Latency | 1.00x | 1.02x |
+The Memory Bank caches each streamer's encoded representations: $\mathcal{M}[a] = (h^a_\text{CLS}, h^a_\text{TAR})$.
 
-+8% training overhead, only +2% inference latency—thanks to the asymmetric deployment where heavy author-side computation happens entirely offline.
+- **Offline**: SAE periodically re-encodes streamers and updates the Memory Bank
+- **Online**: Constant-time lookup — SAE doesn't participate in real-time inference
+
+This resolves the core tension between "rich semantic model" and "strict serving latency."
+
+## Case Study
+
+![Semantic anchor attention heatmaps and similar streamer retrieval](./assets/sarm-case-study.png)
+
+Attention visualization on two streamers with different styles: the model correctly focuses on discriminative tokens (game titles, audience descriptors) and retrieves semantically similar streamers based on anchor representations. The anchors are learning meaningful content semantics, not random patterns.
 
 ## Reflections
 
-1. **Semantic anchor timeliness**: The paper says MLLMs generate anchors daily, but live content changes in real-time. For a streamer who sings during the day and games at night, is daily granularity sufficient? Could session-level dynamic anchors help?
+1. **Semantic anchors vs SIDs — the fundamental difference**: SIDs compress semantics into a finite vocabulary (information bottleneck is unavoidable); semantic anchors use open-ended natural-language tokens (theoretically lossless). But can a 4-layer lightweight SAE actually leverage all that information? That's an open question.
 
-2. **Gated Fusion vs full fine-tuning**: The paper chooses gating over LoRA/full fine-tuning to preserve pretrained knowledge. But how important is general language knowledge in a recommendation context? With sufficient domain data, might full fine-tuning actually work better?
+2. **MLLM generation quality as the ceiling**: The entire system's upper bound depends on the offline MLLM's anchor quality. The paper mentions domain-specific fine-tuning but is vague about generation quality evaluation. What happens when the anchors are wrong?
 
-3. **Auxiliary loss necessity**: The choice of $\lambda$ isn't discussed in detail. Could the training stabilization from auxiliary CTR loss be replaced by better learning rate scheduling or gradient clipping?
+3. **Memory Bank staleness**: Live-streaming content changes daily (gaming today, lifestyle tomorrow), but the Memory Bank is updated asynchronously. How much lag is there? Does this hurt rapidly-evolving streamers or new entrants?
 
-4. **Memory Bank consistency**: Author representations are computed offline and cached, but the ranking model is continuously stream-trained. Is there a version inconsistency issue? The paper doesn't discuss the impact of stale embeddings.
+4. **Domain tokenizer transferability**: BPE-extended tokenizers should work equally well in other vertical domains (medical, legal, finance) — all have domain-specific terms that general tokenizers fragment. Worth exploring.
 
-5. **Combination with Semantic IDs**: SARM and Semantic IDs aren't methodologically exclusive. Semantic anchors provide fine-grained semantics while Semantic IDs provide discrete behavioral clusters. Could combining both yield further improvements?
+5. **Cold start — really solved?** The paper claims semantic anchors help cold start, but the experiments don't include a dedicated cold-start evaluation. For a brand-new streamer with no behavioral history at all, are anchors alone sufficient?
 
 ## References
 
-- [SARM: LLM-Augmented Semantic Anchor for End-to-End Live-Streaming Ranking](https://arxiv.org/abs/2602.09401)
-- [BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding](https://arxiv.org/abs/1810.04805)
-- [RoFormer: Enhanced Transformer with Rotary Position Embedding](https://arxiv.org/abs/2104.09864)
+- [LLM-Augmented Semantic Anchor for End-to-End Live-Streaming Ranking](https://arxiv.org/abs/2602.09401) (arXiv 2602.09401)
