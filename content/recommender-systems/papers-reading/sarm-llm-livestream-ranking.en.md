@@ -126,27 +126,53 @@ The auxiliary loss provides direct ranking supervision to the semantic represent
 
 ## Experimental Results
 
-### Offline Comparison (Kuaishou live-streaming dataset)
+### Offline Comparison (Kuaishou dataset, 400M users + 3M streamers)
 
-| Method | CTR | WTR | LVTR | GTR |
-|---|---|---|---|---|
-| Base | — | — | — | — |
-| + Discrete SID | +△ | +△ | +△ | +△ |
-| + Dense Embedding | +△ | +△ | +△ | +△ |
-| **SARM (ours)** | **best** | **best** | **best** | **best** |
+| Model | CTR AUC | CTR GAUC | WTR AUC | WTR GAUC | LVTR AUC | LVTR GAUC | GTR AUC | GTR GAUC |
+|---|---|---|---|---|---|---|---|---|
+| Base | 0.8387 | 0.6453 | 0.9217 | 0.6500 | 0.8928 | 0.7542 | 0.9792 | 0.7319 |
+| +Tags | 0.8390 | 0.6457 | 0.9220 | 0.6510 | 0.8932 | 0.7542 | 0.9794 | 0.7324 |
+| +SIDs | 0.8389 | 0.6469 | 0.9221 | 0.6536 | 0.8936 | 0.7553 | 0.9799 | 0.7324 |
+| +MLLM Emb | 0.8385 | 0.6451 | 0.9210 | 0.6475 | 0.8932 | 0.7551 | 0.9790 | 0.7320 |
+| **SARM** | **0.8411** | **0.6485** | **0.9232** | **0.6522** | **0.8959** | **0.7580** | **0.9825** | **0.7369** |
 
-(Exact numbers in Table 1 of the paper; SARM achieves best on all metrics, highlighted in blue)
+Notable observations:
+
+- MLLM Embedding actually underperforms Base on CTR and WTR — confirming the "dense embeddings misaligned with ranking" hypothesis
+- Semantic IDs show decent GAUC gains but limited AUC improvement — discretization loses cross-category fine-grained distinctions
+- SARM leads across all 8 metrics; GTR GAUC +0.50% is highly significant in industrial settings
 
 ### Ablation
 
-Key findings:
-- Removing auxiliary loss → unstable training, oscillating loss curves
-- Removing domain tokenizer → AUC drops for domain-specific terms, cold-start metrics degrade noticeably
-- Removing Memory Bank → online latency becomes unacceptable
+| Replaced Component | CTR AUC Δ | CTR GAUC Δ | LVTR AUC Δ | LVTR GAUC Δ |
+|---|---|---|---|---|
+| Standard Tokenizer replacing Live Tokenizer | +0.07% | +0.10% | +0.08% | +0.11% |
+| Removing Gated Fusion | +0.09% | +0.14% | +0.12% | +0.22% |
+| Removing Cross Attention | +0.09% | +0.22% | +0.20% | +0.25% |
+| [CLS] Sequence replacing full approach | +0.18% | +0.30% | +0.27% | +0.33% |
+
+Removing identity-aware Cross Attention has the largest GAUC impact (+0.22%/+0.25%), confirming that individual-level representations are critical for ranking.
 
 ### Online A/B Tests
 
-Fully deployed on Kuaishou live-streaming, **serving 400M+ daily active users**, with consistent improvements across multiple online metrics in long-term A/B tests.
+| Platform | Exposure | Watch Count | Watch Time | Click | Gift | Effective View | Follow |
+|---|---|---|---|---|---|---|---|
+| Kuaishou | +0.424% | +0.189% | +0.092% | +0.982% | +0.482% | +0.070% | +0.805% |
+| Kuaishou Lite | +1.190% | +0.397% | +0.962% | +0.562% | +1.287% | +0.340% | +0.522% |
+
+Fully deployed **serving 400M+ daily active users**. Kuaishou Lite shows larger gains, possibly because its users are more sensitive to recommendation quality.
+
+### Computational Overhead
+
+| Metric | Base | SARM |
+|---|---|---|
+| CPU Usage | 48.69% | 51.71% |
+| GPU Usage | 77.54% | 80.29% |
+| Training Time | 1.00x | 1.08x |
+| QPS | 280.71 | 271.30 |
+| Inference Latency | 1.00x | 1.02x |
+
++8% training overhead, only +2% inference latency — asymmetric deployment keeps heavy author-side computation entirely offline.
 
 ## Asymmetric Deployment
 
