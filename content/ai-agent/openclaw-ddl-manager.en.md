@@ -27,7 +27,39 @@ Tasks are categorized by importance and urgency:
 | Q3 Urgent, Not Important | Delegate if possible | Ad-hoc meetings, errands |
 | Q4 Neither | Cut if possible | Mindless scrolling, useless meetings |
 
+### DDL File Format
+
+`DDL.md` only holds active tasks. Completed tasks are deleted and logged into the daily memory file:
+
+```markdown
+# DDL.md - Rose's Task List
+
+<!-- Active tasks only. Completed tasks are removed and logged to memory/YYYY-MM-DD.md. -->
+
+## Q1 - Important + Urgent
+
+<!-- Format: - [ ] Task name | deadline: YYYY-MM-DD | last progress: XX | last updated: YYYY-MM-DD -->
+
+- [ ] H1B filing | deadline: 2026-04-01 | last progress: materials submitted | last updated: 2026-03-06
+
+## Q2 - Important, Not Urgent
+
+## Q3 - Urgent, Not Important
+
+## Q4 - Neither
+```
+
+Key point: each task carries a deadline, last progress note, and last updated date. The heartbeat patrol uses these to decide whether a reminder is needed.
+
 ### Three Automated Jobs
+
+The entire system runs on three triggers:
+
+| Trigger | When | What |
+|---------|------|------|
+| Heartbeat | Hourly, 10:00–01:00 | Check DDL for due dates → remind or HEARTBEAT_OK |
+| Morning brief | Daily 11:00 | Send today's task overview |
+| Daily report | Daily 21:00 | Three-stage reviewed report |
 
 **Morning reminder (cron, daily 11:00)**
 
@@ -43,7 +75,32 @@ openclaw cron add \
   --to "YOUR_CHAT_ID"
 ```
 
-**Daily report (cron, daily 21:00)**
+The morning reminder only reads DDL.md — no cross-agent communication needed. Output format:
+
+```
+🌅 Today's Tasks YYYY-MM-DD
+
+【Q1 Priority】
+- [Due today or urgent tasks, with deadlines]
+
+【Q2 Progress】
+- [Latest progress on important but not urgent items]
+
+【Reminders】
+- [Anything that needs attention, if any]
+```
+
+**Daily report (cron, daily 21:00) — Three-stage review**
+
+The daily report isn't just "read file, generate summary." It runs a three-stage review process:
+
+| Stage | Action | Broadcast? |
+|-------|--------|------------|
+| 1. Data collection | Query each agent for today's data | No |
+| 2. Draft review | Compile draft, send back to agents for line-by-line confirmation | No |
+| 3. Send | Broadcast the confirmed final report | Yes |
+
+Why three stages? In practice, the butler agent's "understand and synthesize" step is error-prone — it might attribute A's info to B, or use stale memory data. The three stages ensure every piece of information is confirmed by its source.
 
 ```bash
 openclaw cron add \
@@ -51,7 +108,7 @@ openclaw cron add \
   --cron "0 21 * * *" \
   --tz "America/Los_Angeles" \
   --session isolated \
-  --message "Read the DDL management file and generate today's report: what got done, what's left, tomorrow's priorities." \
+  --message "Run three-stage report: 1.Collect from minicat and lingro 2.Compile and send back for confirmation 3.Broadcast confirmed report" \
   --announce \
   --channel telegram \
   --to "YOUR_CHAT_ID"
@@ -69,60 +126,115 @@ Configure in `openclaw.json`:
 }
 ```
 
-Add patrol logic to `HEARTBEAT.md`:
+Add patrol logic to `HEARTBEAT.md` with prioritized checks:
 
 ```markdown
-## DDL Patrol
+## Heartbeat (Hourly)
 
-- Scan DDL file for Q1 tasks with no progress in 2+ days
-- Check for tasks with no response from Rose in 1+ day
-- Send an alert if anything needs attention
+Read DDL.md and check in priority order:
+
+**Check A: Tasks due today or tomorrow**
+→ Remind immediately
+
+**Check B: Q1 tasks with last update date 2+ days ago**
+→ Procrastination mode
+
+**Check C: Rose hasn't responded to any reminder in 1+ day**
+→ Ghost mode
+
+**None of the above** → Reply HEARTBEAT_OK
 ```
 
 ## Reminder Strategies
 
 Two special cases — handled with care, not nagging:
 
-**Procrastination mode (Q1, no progress for 2+ days)**
+**Procrastination mode (Check B: Q1, no progress for 2+ days)**
 
 Instead of "your deadline is coming up", give one minimum viable action:
 
 > "Thesis deadline is in 5 days. Today's only job: finish the outline for Chapter 3. Should take 30 minutes."
 
-**Ghost mode (no response for 1+ day)**
+**Ghost mode (Check C: no response for 1+ day)**
 
 Bump up to twice-daily reminders — stay present without adding pressure.
 
 ## User Interface: Plain Speech
 
-No forms, no commands — just talk:
+No forms, no commands — just talk. The agent (小蜜) parses input and updates DDL.md:
 
+| What the user says | What the agent does |
+|-------------------|-------------------|
+| "X is done" | Remove from DDL.md, log to `memory/YYYY-MM-DD.md` |
+| "Did some work on X: [details]" | Update last progress and date in DDL.md |
+| "Change X's deadline to Y" | Update the date in DDL.md |
+| "New task: X, deadline Y, Q1" | Add to the corresponding quadrant in DDL.md |
+| "Move X to Q2" | Change the task's quadrant |
+
+Rose just talks — no file formats to maintain.
+
+## Memory System
+
+Completed tasks don't just get archived — they feed into a two-layer memory system:
+
+**Daily Memory (`memory/YYYY-MM-DD.md`) — The log**
+
+```markdown
+# 2026-03-06
+
+## Tasks
+- ✅ Completed: H1B materials submitted (13:00 PST)
+- 🔄 Progress: Thesis — finished Chapter 3 outline
+- ➕ New: Browser Relay research
+
+## Daily Report
+- Sent at: 21:48 PST
+- minicat: 7 posts/updates today
+- Rose status: happy/energized
+
+## Cross-Agent Coordination
+- Asked minicat about today's publishing status, confirmed 7 posts pushed
+
+## Other
+- Token usage: ~1M tokens/day during heavy sessions_send usage
 ```
-New task: H1B filing, deadline April 1, Q1
-X is done
-Did some work on Y (partial progress)
-Move X to Q2
-```
 
-The agent (小蜜) parses the input and updates the file. Rose just talks.
+**Long-term Memory (`MEMORY.md`) — Curated knowledge**
 
-## Archiving
+Not a log — only things that matter across days:
 
-Tasks completed more than 7 days ago get moved to the archive:
+- Rose's long-term status trends ("she's been tired for the past two weeks" — a cross-day observation)
+- Key context (relationships, important preferences)
+- System-level lessons (token consumption, workflow bugs)
+- Each agent's capability boundaries and known issues
 
-```
-DDL_archive/
-└── 2026-03.md
-```
-
-Keeps the record, removes it from daily patrol.
+On every session startup, 小蜜 reads today's and yesterday's daily memory plus the long-term MEMORY.md to reconstruct context.
 
 ## Why Multi-Agent?
 
-- **小蜜** (butler agent): reads/writes the DDL file, runs cron jobs, sends reminders
-- **Rose**: just talks — no file formats to maintain
+The system runs three agents, each with a clear role:
 
-This is the multi-agent division of labor from [[openclaw-multi-agent-tutorial]] applied to a real use case — one agent handles execution, the human handles decisions.
+| Agent | Emoji | Role | Relation to DDL System |
+|-------|-------|------|----------------------|
+| 小蜜 | 🏠 | Butler / Coordinator | Runs DDL patrol, morning brief, daily report; maintains task files |
+| minicat | 🐱 | Blog assistant | Provides daily blog activity data for reports |
+| 凌若 | 💜 | Best friend / Coach | Provides Rose's daily status tag for reports |
+
+小蜜 is the hub — doesn't write blogs (minicat's job), doesn't do emotional support (凌若's job). It only coordinates and executes.
+
+This is the multi-agent division of labor from [[openclaw-multi-agent-tutorial]] applied to a real use case. Key design principles:
+
+**Transparent agent communication**
+
+After 小蜜 communicates with other agents via `sessions_send`, it must broadcast the content to the Telegram group. Rose can always ask "what did you tell minicat?" and get a fully transparent answer. The only exception: stages 1-2 of the daily report don't broadcast, because the back-and-forth confirmation is too noisy — the final version goes out all at once.
+
+**Privacy boundaries**
+
+凌若 and Rose's private conversations should never appear in any output. When 小蜜 reads 凌若's memory, it only reads the first-line status tag (e.g., "happy/energized"), never the actual conversation content. The daily report only writes "Rose status: [tag]" for 凌若's section.
+
+**No decisions on Rose's behalf**
+
+小蜜 provides information and suggestions, but the choice is always Rose's. It doesn't make decisions for other agents — it only coordinates and notifies.
 
 ## Cron Configuration Details
 
