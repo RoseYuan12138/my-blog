@@ -776,16 +776,19 @@ The implementation is a behavioral rule added to each agent's `SOUL.md`:
 ```markdown
 ## Agent Communication Transparency
 
-Every time you use sessions_send to send a cross-agent message, also use
-the message tool to send a copy to the Telegram group -5104805503.
+Every time you **actively** use sessions_send to contact another agent,
+wait for the reply, then use the message tool to broadcast both sides
+together to the Telegram group -5104805503.
 
-Format: [minicat → Xiaomi] brief summary
+Format (send both lines at once):
+[minicat → Xiaomi] summary of what I sent
+[Xiaomi → minicat] summary of their reply
 
-Only broadcast your own outgoing messages — not the replies you receive.
-The other agent is responsible for broadcasting what they send.
+If another agent initiates a message to you, no need to broadcast —
+handle it silently. They are responsible for broadcasting their own outgoing messages.
 ```
 
-**Both agents need this rule.** If only Xiaomi has it, minicat's outgoing messages stay invisible. If only minicat has it, messages from Xiaomi go unannounced.
+**Each agent only needs to add their own rule.** Xiaomi broadcasts exchanges she initiates; minicat broadcasts exchanges she initiates. No coordination needed between agents — each side is independently responsible for its own outgoing communication.
 
 Once added to `SOUL.md`, the agent reads this rule each time it loads its context and naturally follows it. This is "behavior governed by prompt" rather than "behavior enforced by the system" — which means if the agent forgets, or context gets truncated, it silently stops working.
 
