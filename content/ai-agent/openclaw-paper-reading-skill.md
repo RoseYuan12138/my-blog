@@ -1,5 +1,5 @@
 ---
-title: "给 AI 管家教一个新技能：论文精读"
+title: "给博客猫教一个新技能：论文精读"
 date: 2026-03-06
 tags:
   - AI Agent
@@ -12,7 +12,7 @@ english: ai-agent/openclaw-paper-reading-skill.en
 
 > 🌐 [Read in English](./openclaw-paper-reading-skill.en.md)
 
-之前搭好了 [[openclaw-blog-workflow|博客管家]]，minicat 已经能帮我写笔记、翻译、提交 git。但每次读论文还是纯手动——fetch 论文、提取插图、写中英双语笔记、更新 index、commit——流程固定但步骤多。于是决定把这套流程沉淀成一个可复用的 skill。
+之前搭好了 [[openclaw-blog-workflow|24 小时知识管家]]，minicat 已经能帮我写笔记、翻译、提交 git。但每次读论文还是纯手动——fetch 论文、提取插图、写中英双语笔记、更新 index、commit——流程固定但步骤多。于是决定把这套流程沉淀成一个可复用的 skill。
 
 ## 动机
 
@@ -74,20 +74,11 @@ python .skills/paper-reading/scripts/extract_figures.py \
 
 ## 融入 minicat
 
-这里有个关键问题：**Cowork 的 `.skill` 文件机制和 OpenClaw 的指令系统是两套东西**。
+这个 skill 是我自定义的，脚本和文档放在博客仓库的 `.skills/paper-reading/` 目录下。minicat 本身不会自动扫描这个目录——它的行为规范完全来自 workspace 里的 markdown 文件，每次启动 session 会主动读取 `SOUL.md`（身份）、`BLOG_INSTRUCTIONS.md`（博客操作指南）等。
 
-Cowork（Claude 桌面端）通过 SKILL.md 的 YAML frontmatter 里的 description 字段触发 skill——本质上是把 skill 说明注入到 Claude 的可用工具列表里。
+所以我在 `BLOG_INSTRUCTIONS.md` 里加了"论文精读"章节，告诉 minicat：触发词是什么、流程是什么、脚本在哪。`.skills/` 目录是**工具箱**，`BLOG_INSTRUCTIONS.md` 是**使用说明**——minicat 读了说明，知道工具在哪、怎么用。
 
-OpenClaw 的 minicat 则完全靠 workspace 里的 markdown 文件获取指令。它每次启动 session 会读 `SOUL.md`（身份）、`BLOG_INSTRUCTIONS.md`（博客操作指南）等文件。
-
-所以同一个 skill 需要**两个入口**：
-
-1. **`.skills/paper-reading/SKILL.md`**：给 Cowork 用，包含完整的 pipeline 描述和脚本路径，随 blog 仓库走
-2. **`BLOG_INSTRUCTIONS.md` 中的"论文精读"章节**：给 minicat 用，写在它的行为指南里，包含触发词、流程、目录映射、文章模板
-
-两边引用同一个 `extract_figures.py` 脚本，保持工具层统一。
-
-在 `BLOG_INSTRUCTIONS.md` 的触发词表里加了两条：
+加入的触发词：
 
 | Rose 说的话 | 行为 |
 |---|---|
@@ -99,7 +90,7 @@ OpenClaw 的 minicat 则完全靠 workspace 里的 markdown 文件获取指令�
 用 [SARM 论文](https://arxiv.org/abs/2602.09401)（快手直播推荐排序）跑了一次完整流程：
 
 1. **内容获取** ✅ — WebFetch 抓 arxiv abstract + HTML 全文
-2. **插图提取** ✅ — `extract_figures.py --arxiv` 提取 9 张图，选了 3 张（架构图、方法对比、SAE 细节）
+2. **插图提取** ✅ — `extract_figures.py --arxiv` 提取 9 张图，选了 5 张（方法对比、系统架构、门控融合、部署流水线、案例分析）
 3. **中文精读** ✅ — 完整公式、4 张实验数据表、5 条反思
 4. **英文翻译** ✅ — 同结构自然翻译
 5. **index.md** ✅ — 新建 `papers-reading/index.md`
@@ -111,12 +102,12 @@ OpenClaw 的 minicat 则完全靠 workspace 里的 markdown 文件获取指令�
 
 ```
 .skills/paper-reading/
-├── SKILL.md              # Pipeline 定义（Cowork 入口）
+├── SKILL.md              # Pipeline 完整定义（流程文档）
 └── scripts/
     └── extract_figures.py # 插图提取（arxiv HTML + PDF 双模式）
 ```
 
-加上 `BLOG_INSTRUCTIONS.md` 里的论文精读章节（minicat 入口），一共三个文件就搞定了整个技能的定义和分发。
+加上 `BLOG_INSTRUCTIONS.md` 里的论文精读章节（minicat 的调用入口），两个地方配合，一个存工具，一个写规则。
 
 ## 小结
 

@@ -1,5 +1,5 @@
 ---
-title: "Teaching the AI Butler a New Skill: Paper Reading"
+title: "Teaching the Blog Cat a New Skill: Paper Reading"
 date: 2026-03-06
 tags:
   - AI Agent
@@ -12,7 +12,7 @@ chinese: ai-agent/openclaw-paper-reading-skill
 
 > 🌐 [中文版](./openclaw-paper-reading-skill.md)
 
-With the [[openclaw-blog-workflow|blog butler]] already set up, minicat can draft notes, translate, and commit to git. But reading papers was still entirely manual — fetch the paper, extract figures, write bilingual notes, update the index, commit — a fixed process with many steps. So I decided to codify this workflow into a reusable skill.
+With the [[openclaw-blog-workflow|24-hour knowledge butler]] already set up, minicat can draft notes, translate, and commit to git. But reading papers was still entirely manual — fetch the paper, extract figures, write bilingual notes, update the index, commit — a fixed process with many steps. So I decided to codify this workflow into a reusable skill.
 
 ## Motivation
 
@@ -74,20 +74,11 @@ A lightweight mode is also supported — saying "quick summary" produces a 1-pag
 
 ## Integrating with minicat
 
-Here's the key challenge: **Cowork's `.skill` file mechanism and OpenClaw's instruction system are two completely different things**.
+This skill is custom-built. The script and documentation live under `.skills/paper-reading/` in the blog repo. minicat doesn't automatically scan that directory — its behavior is entirely driven by workspace markdown files, proactively loaded on each session start (`SOUL.md`, `BLOG_INSTRUCTIONS.md`, etc.).
 
-Cowork (Claude's desktop app) triggers skills via the description field in SKILL.md's YAML frontmatter — essentially injecting the skill description into Claude's available tools list.
+So I added a "Paper Reading" section to `BLOG_INSTRUCTIONS.md`, telling minicat: what triggers the workflow, what steps to follow, and where the script lives. The `.skills/` directory is the **toolbox**; `BLOG_INSTRUCTIONS.md` is the **instruction manual** — minicat reads the manual and knows where to find the tools.
 
-OpenClaw's minicat relies entirely on markdown files in its workspace for instructions. On each session start, it reads `SOUL.md` (identity), `BLOG_INSTRUCTIONS.md` (blog operation guide), and other files.
-
-So the same skill needs **two entry points**:
-
-1. **`.skills/paper-reading/SKILL.md`**: For Cowork — contains the full pipeline description and script paths, lives in the blog repo
-2. **"Paper Reading" section in `BLOG_INSTRUCTIONS.md`**: For minicat — written into its behavior guide with trigger words, workflow, directory mapping, and article template
-
-Both reference the same `extract_figures.py` script, keeping the tooling layer unified.
-
-Two new trigger rules were added to the trigger word table in `BLOG_INSTRUCTIONS.md`:
+Two new trigger rules were added:
 
 | Rose says | Behavior |
 |---|---|
@@ -99,7 +90,7 @@ Two new trigger rules were added to the trigger word table in `BLOG_INSTRUCTIONS
 Ran the full pipeline on the [SARM paper](https://arxiv.org/abs/2602.09401) (Kuaishou live-streaming ranking):
 
 1. **Content fetch** ✅ — WebFetch grabbed arxiv abstract + HTML full text
-2. **Figure extraction** ✅ — `extract_figures.py --arxiv` extracted 9 figures, selected 3 (architecture, method comparison, SAE details)
+2. **Figure extraction** ✅ — `extract_figures.py --arxiv` extracted 9 figures, selected 5 (method comparison, system architecture, gated fusion, deployment pipeline, case study)
 3. **Chinese deep reading** ✅ — Complete equations, 4 experimental data tables, 5 reflections
 4. **English translation** ✅ — Same structure, natural translation
 5. **index.md** ✅ — Created `papers-reading/index.md`
@@ -111,12 +102,12 @@ The generated notes are [[sarm-llm-livestream-ranking|here]], with figures, comp
 
 ```
 .skills/paper-reading/
-├── SKILL.md              # Pipeline definition (Cowork entry point)
+├── SKILL.md              # Full pipeline definition (documentation)
 └── scripts/
     └── extract_figures.py # Figure extraction (arxiv HTML + PDF dual mode)
 ```
 
-Together with the paper reading section in `BLOG_INSTRUCTIONS.md` (minicat entry point), three files define and distribute the entire skill.
+Paired with the paper reading section in `BLOG_INSTRUCTIONS.md` (minicat's call-in point): one place stores the tools, the other holds the rules.
 
 ## Takeaway
 
