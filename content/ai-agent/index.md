@@ -21,8 +21,8 @@ title: AI Agent
 从零搭建 3-Agent 系统的完整操作手册，含所有配置文件、踩坑记录和可复现步骤。
 
 **③ 看应用案例**
-→ [用 OpenClaw 搭建个人 DDL 管理系统](./openclaw-ddl-manager.md)
-一个具体的应用场景：怎么让 Agent 帮你追踪 deadline、发晨间提醒和日报。
+→ [让管家 Agent 替你追 Deadline：小蜜的 DDL 管理日常](./openclaw-ddl-manager.md)
+管家 Agent 小蜜的核心功能：Deadline 追踪、晨间提醒、三阶段日报，全口语操作。
 
 **④ 给 Agent 扩展技能**
 → [给博客猫教一个新技能：论文精读](./openclaw-paper-reading-skill.md)
@@ -31,3 +31,10 @@ title: AI Agent
 **⑤ 优化和省钱**
 → [OpenClaw 多 Agent 系统优化：省钱、提速、瘦身](./openclaw-agent-optimization.md)
 跑起来之后，怎么控制 token 消耗、选择合适的模型、减少不必要的 LLM 调用。
+
+---
+
+## 📋 参考
+
+→ [OpenClaw 命令速查](./openclaw-commands.md)
+Gateway、Cron、Pairing、插件管理——所有常用命令一页搞定。

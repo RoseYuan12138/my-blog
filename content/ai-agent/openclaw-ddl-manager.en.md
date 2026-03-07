@@ -1,5 +1,5 @@
 ---
-title: "Building a Personal DDL Manager with OpenClaw"
+title: "Let Your Butler Agent Track Deadlines: Xiaomi's Daily DDL Routine"
 date: 2026-03-06
 tags:
   - OpenClaw
@@ -12,7 +12,36 @@ chinese: ai-agent/openclaw-ddl-manager
 
 > 🌐 [中文版](./openclaw-ddl-manager.md)
 
-No Notion, no Kanban boards — just tell the AI "I finished X" and it handles the rest. This system uses OpenClaw's multi-agent architecture to turn task management into a conversation.
+Every morning at 11am, before I'm fully awake, Xiaomi has already read through my task list and sent me a morning briefing:
+
+> 🌅 Today's Tasks — 2026-03-06
+>
+> **【Q1 Priority】**
+> - H1B Filing — due 4/1, 26 days left, materials submitted ✅
+> - Thesis — due 5/15, **recommended: finish Chapter 3 outline today**
+>
+> **【Q2 Progress】**
+> - Browser Relay research — no update (2 days, consider downgrading?)
+
+At 9pm, she sends a daily report. If I've been ignoring reminders for a task for a few days, she switches to "procrastination mode" — no more deadline countdowns, just one minimal next step: "You only need to do one thing today."
+
+This is Xiaomi's daily routine — the butler agent in my multi-agent system, dedicated to making sure I don't drop anything important.
+
+---
+
+## Who Is Xiaomi
+
+In my 3-agent system (full setup in [[openclaw-multi-agent-tutorial]]):
+
+| Agent | Emoji | Role |
+|-------|-------|------|
+| minicat | 🐱 | Blog assistant — turns notes into articles |
+| Lingro | 💜 | Best friend — emotional support and life planning |
+| Xiaomi | 🏠 | Butler — task management, progress tracking, coordination, daily reports |
+
+DDL management is Xiaomi's core function. This article covers only Xiaomi's DDL work — how she operates and how to configure it. No Notion, no Kanban boards — just tell the AI "I finished X" and it handles the rest.
+
+---
 
 ## System Design
 
