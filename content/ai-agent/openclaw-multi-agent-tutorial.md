@@ -777,14 +777,11 @@ minicat → 小蜜：收到，草稿已发给 Rose 确认
 ```markdown
 ## Agent 通信透明度
 
-跨 Agent 通信必须对 Rose 可见。每次用 `sessions_send` 发消息给其他 Agent，
-**同时**发一条到 Telegram 群 `-5104805503`：
+每次用 sessions_send 发送跨 Agent 消息时，同时用 message 工具发一条到 Telegram 群 -5104805503。
 
-[minicat → 小蜜] 内容摘要
+格式：[minicat → 小蜜] 内容摘要
 
-收到其他 Agent 的消息时，同样转发一条：
-
-[小蜜 → minicat] 内容摘要
+只播报自己发出的消息，不播报收到的回复（对方负责播报自己发出的内容）。
 ```
 
 **两边都要加。** 只给小蜜加，minicat 发出去的消息依然不可见；只给 minicat 加，小蜜发过来的消息也不播报。

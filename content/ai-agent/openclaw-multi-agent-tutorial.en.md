@@ -776,15 +776,13 @@ The implementation is a behavioral rule added to each agent's `SOUL.md`:
 ```markdown
 ## Agent Communication Transparency
 
-Cross-agent communication must be visible to Rose. Every time you use
-`sessions_send` to message another agent, **also** send a copy to the
-Telegram group `-5104805503`:
+Every time you use sessions_send to send a cross-agent message, also use
+the message tool to send a copy to the Telegram group -5104805503.
 
-[minicat → Xiaomi] brief summary
+Format: [minicat → Xiaomi] brief summary
 
-When receiving a message from another agent, broadcast it too:
-
-[Xiaomi → minicat] brief summary
+Only broadcast your own outgoing messages — not the replies you receive.
+The other agent is responsible for broadcasting what they send.
 ```
 
 **Both agents need this rule.** If only Xiaomi has it, minicat's outgoing messages stay invisible. If only minicat has it, messages from Xiaomi go unannounced.
