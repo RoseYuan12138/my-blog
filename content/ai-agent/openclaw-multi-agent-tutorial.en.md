@@ -791,11 +791,22 @@ When receiving a message from another agent, broadcast it too:
 
 Once added to `SOUL.md`, the agent reads this rule each time it loads its context and naturally follows it. This is "behavior governed by prompt" rather than "behavior enforced by the system" — which means if the agent forgets, or context gets truncated, it silently stops working.
 
+**The rule needs two things spelled out explicitly:**
+
+1. **Only broadcast your own outgoing messages** — don't relay the other agent's messages on their behalf. Each agent is responsible only for what it sends.
+2. **Replies count as outgoing messages too.** When you receive a message and reply via `sessions_send`, that reply also needs to be broadcast.
+
 ### 6.7 Pitfalls
 
+**Configuration level:**
 - **Silent message drop**: empty `groupAllowFrom` = all messages discarded, with no error — very hard to debug
 - **Can't see group chat ID**: `getUpdates` is consumed by OpenClaw, so you have to extract it from Gateway logs
 - **Restart disconnect**: after editing `openclaw.json`, you need `openclaw gateway restart` — expect a few seconds of downtime
+
+**Behavior rule level (discovered in practice):**
+- **Receiver broadcasting on sender's behalf**: an early mistake was having the receiving agent also broadcast the incoming message to the group — causing every message to appear twice. Each agent should only broadcast what it sends.
+- **Replies silently skipped**: if the rule says "broadcast when sending cross-agent messages," it's easy to interpret that as "only when initiating." Replies get forgotten. The rule must say explicitly: **any message sent via `sessions_send`, whether initiated or in reply, must be broadcast**.
+- **Modifying another agent's SOUL.md without permission**: if you notice another agent is missing the rule, directly editing their SOUL.md is overstepping. The right move is to notify the agent and let it add the rule itself — or confirm with Rose first.
 - **Transparency relies on behavior rules, not config**: forgetting to add the rule to one agent's SOUL.md means that agent's messages are invisible to Rose — no error, no warning
 - **Update all agents**: in a multi-agent system, each agent has its own SOUL.md; missing one is easy to do
 
