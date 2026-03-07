@@ -801,75 +801,21 @@ minicat → 小蜜：收到，草稿已发给 Rose 确认
 
 ---
 
-## OpenClaw 命令速查
-
-### Gateway 管理
+## OpenClaw 常用命令
 
 ```bash
-# 启动 Gateway
-openclaw gateway start
+# Gateway 控制
+openclaw gateway start / restart / stop / status
 
-# 重启 Gateway（修改配置后必须重启）
-openclaw gateway restart
+# 日志（出问题先看这里）
+openclaw logs --follow
 
-# 停止 Gateway
-openclaw gateway stop
-
-# 查看 Gateway 状态
-openclaw gateway status
-```
-
-### Agent 管理
-
-```bash
-# 添加 Agent（可选，也可以直接改 openclaw.json）
-openclaw agents add lingro
-
-# 列出所有 Agent
-openclaw agents list
-
-# 查看某个 Agent 状态
-openclaw agents status lingro
-```
-
-### 诊断
-
-```bash
 # 全面诊断
 openclaw doctor
 
-# 查看日志
-openclaw logs
-
-# 查看实时日志
-openclaw logs --follow
-```
-
-### Pairing
-
-```bash
-# 列出待批准的配对请求
+# 配对管理
 openclaw pairing list
-
-# 批准配对
 openclaw pairing approve telegram XXXXXXXX
-```
-
-### Supermemory
-
-```bash
-# 查看 Supermemory 状态（需要先安装插件且 Gateway 运行中）
-openclaw supermemory status
-```
-
-### 插件管理
-
-```bash
-# 安装插件
-openclaw plugin install @supermemory/openclaw-supermemory
-
-# 列出已安装插件
-openclaw plugin list
 ```
 
 ---

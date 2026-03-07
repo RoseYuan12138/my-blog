@@ -802,75 +802,21 @@ Once added to `SOUL.md`, the agent reads this rule each time it loads its contex
 
 ---
 
-## OpenClaw Command Reference
-
-### Gateway Management
+## OpenClaw Quick Commands
 
 ```bash
-# Start Gateway
-openclaw gateway start
+# Gateway control
+openclaw gateway start / restart / stop / status
 
-# Restart Gateway (required after config changes)
-openclaw gateway restart
+# Logs (check here first when something goes wrong)
+openclaw logs --follow
 
-# Stop Gateway
-openclaw gateway stop
-
-# Check Gateway status
-openclaw gateway status
-```
-
-### Agent Management
-
-```bash
-# Add an agent (optional — you can also edit openclaw.json directly)
-openclaw agents add lingro
-
-# List all agents
-openclaw agents list
-
-# Check a specific agent's status
-openclaw agents status lingro
-```
-
-### Diagnostics
-
-```bash
-# Full diagnostic check
+# Full diagnostic
 openclaw doctor
 
-# View logs
-openclaw logs
-
-# Stream live logs
-openclaw logs --follow
-```
-
-### Pairing
-
-```bash
-# List pending pairing requests
+# Pairing management
 openclaw pairing list
-
-# Approve a pairing
 openclaw pairing approve telegram XXXXXXXX
-```
-
-### Supermemory
-
-```bash
-# Check Supermemory status (requires plugin installed + Gateway running)
-openclaw supermemory status
-```
-
-### Plugin Management
-
-```bash
-# Install a plugin
-openclaw plugin install @supermemory/openclaw-supermemory
-
-# List installed plugins
-openclaw plugin list
 ```
 
 ---
