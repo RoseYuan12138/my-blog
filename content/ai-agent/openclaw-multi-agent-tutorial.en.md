@@ -767,11 +767,37 @@ minicat → Xiaomi: Got it, draft sent to Rose for review
 
 ![Agent coordination messages in the Telegram group](./assets/agent-group-transparency.png)
 
-### 6.6 Pitfalls
+### 6.6 Key Point: This Is Not Automatic — It's a SOUL.md Behavioral Rule
+
+Here's the easy-to-miss part: **OpenClaw has no built-in mechanism to automatically broadcast `sessions_send` messages to a group.** Every message that appears in the group is there because an agent explicitly called the `message` tool to put it there.
+
+The implementation is a behavioral rule added to each agent's `SOUL.md`:
+
+```markdown
+## Agent Communication Transparency
+
+Cross-agent communication must be visible to Rose. Every time you use
+`sessions_send` to message another agent, **also** send a copy to the
+Telegram group `-5104805503`:
+
+[minicat → Xiaomi] brief summary
+
+When receiving a message from another agent, broadcast it too:
+
+[Xiaomi → minicat] brief summary
+```
+
+**Both agents need this rule.** If only Xiaomi has it, minicat's outgoing messages stay invisible. If only minicat has it, messages from Xiaomi go unannounced.
+
+Once added to `SOUL.md`, the agent reads this rule each time it loads its context and naturally follows it. This is "behavior governed by prompt" rather than "behavior enforced by the system" — which means if the agent forgets, or context gets truncated, it silently stops working.
+
+### 6.7 Pitfalls
 
 - **Silent message drop**: empty `groupAllowFrom` = all messages discarded, with no error — very hard to debug
 - **Can't see group chat ID**: `getUpdates` is consumed by OpenClaw, so you have to extract it from Gateway logs
 - **Restart disconnect**: after editing `openclaw.json`, you need `openclaw gateway restart` — expect a few seconds of downtime
+- **Transparency relies on behavior rules, not config**: forgetting to add the rule to one agent's SOUL.md means that agent's messages are invisible to Rose — no error, no warning
+- **Update all agents**: in a multi-agent system, each agent has its own SOUL.md; missing one is easy to do
 
 ---
 

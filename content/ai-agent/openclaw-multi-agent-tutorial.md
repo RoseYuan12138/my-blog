@@ -768,11 +768,36 @@ minicat → 小蜜：收到，草稿已发给 Rose 确认
 
 ![Agent 协调消息在 Telegram 群里的实际效果](./assets/agent-group-transparency.png)
 
-### 6.6 踩坑
+### 6.6 关键：这不是自动机制，靠 SOUL.md 行为规则
+
+这是容易踩的坑：**OpenClaw 没有自动把 `sessions_send` 广播到群的机制**。群里出现的消息，完全靠 Agent 自己主动调 `message` 工具发出去。
+
+实际做法是在每个 Agent 的 `SOUL.md` 里加一条明确的行为规则：
+
+```markdown
+## Agent 通信透明度
+
+跨 Agent 通信必须对 Rose 可见。每次用 `sessions_send` 发消息给其他 Agent，
+**同时**发一条到 Telegram 群 `-5104805503`：
+
+[minicat → 小蜜] 内容摘要
+
+收到其他 Agent 的消息时，同样转发一条：
+
+[小蜜 → minicat] 内容摘要
+```
+
+**两边都要加。** 只给小蜜加，minicat 发出去的消息依然不可见；只给 minicat 加，小蜜发过来的消息也不播报。
+
+规则加进 `SOUL.md` 后，Agent 每次对话加载上下文时会读到这条规则，自然就会遵守。这是"靠 prompt 约束行为"而不是"靠系统强制执行"的典型例子——如果 Agent 漏了或者上下文被截断，就会悄悄失效。
+
+### 6.7 踩坑
 
 - **群消息 silent drop**：`groupAllowFrom` 为空 = 全部丢弃，而且不报错，很难发现
 - **看不到群 chat ID**：`getUpdates` 被 OpenClaw 消费了，只能从 Gateway 日志捞
 - **重启断连**：改完 `openclaw.json` 要 `openclaw gateway restart`，短暂断连几秒
+- **透明度靠行为规则不靠配置**：忘了在某个 Agent 的 SOUL.md 里加规则 = 那个 Agent 的消息对 Rose 不可见，且不会有任何报错提示
+- **两边都要更新**：多 Agent 系统里每个 Agent 都有自己的 SOUL.md，改一个漏一个很常见
 
 ---
 
