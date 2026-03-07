@@ -74,7 +74,9 @@ A lightweight mode is also supported — saying "quick summary" produces a 1-pag
 
 ## Integrating with minicat
 
-This skill is custom-built. The script and documentation live under `.skills/paper-reading/` in the blog repo. minicat doesn't automatically scan that directory — its behavior is entirely driven by workspace markdown files, proactively loaded on each session start (`SOUL.md`, `BLOG_INSTRUCTIONS.md`, etc.).
+First, a quick note on how OpenClaw's skill system actually works. OpenClaw has a built-in skill mechanism: it scans its own global skills directory (`/opt/homebrew/lib/node_modules/openclaw/skills/`), injects each skill's `name` and `description` into the agent's system prompt, and loads the full SKILL.md when a user message matches. These are **system-level** skills that ship with OpenClaw — things like `weather`, `healthcheck`, and `coding-agent`.
+
+The `.skills/paper-reading/` directory in the blog repo is something different — a **project-level** custom skill that minicat won't scan automatically. minicat's behavior is entirely driven by workspace markdown files, proactively loaded on each session start (`SOUL.md`, `BLOG_INSTRUCTIONS.md`, etc.).
 
 So I added a "Paper Reading" section to `BLOG_INSTRUCTIONS.md`, telling minicat: what triggers the workflow, what steps to follow, and where the script lives. The `.skills/` directory is the **toolbox**; `BLOG_INSTRUCTIONS.md` is the **instruction manual** — minicat reads the manual and knows where to find the tools.
 

@@ -74,7 +74,9 @@ python .skills/paper-reading/scripts/extract_figures.py \
 
 ## 融入 minicat
 
-这个 skill 是我自定义的，脚本和文档放在博客仓库的 `.skills/paper-reading/` 目录下。minicat 本身不会自动扫描这个目录——它的行为规范完全来自 workspace 里的 markdown 文件，每次启动 session 会主动读取 `SOUL.md`（身份）、`BLOG_INSTRUCTIONS.md`（博客操作指南）等。
+先说清楚 OpenClaw 的 skill 系统是怎么工作的。OpenClaw 有一套内置 skill 机制：它会扫描自己的全局 skills 目录（`/opt/homebrew/lib/node_modules/openclaw/skills/`），把每个 skill 的 `name` 和 `description` 注入到 agent 的系统提示里。当用户消息匹配到某个 skill 的 description 时，agent 就去读完整的 SKILL.md 并按流程执行。这是**系统级**的 skill，随 OpenClaw 安装走，比如内置的 `weather`、`healthcheck`、`coding-agent` 都在这里。
+
+博客仓库里的 `.skills/paper-reading/` 是另一回事——这是我自定义的**项目级** skill，minicat 不会自动扫描它。minicat 的行为规范完全来自 workspace 里的 markdown 文件，每次启动 session 会主动读取 `SOUL.md`（身份）、`BLOG_INSTRUCTIONS.md`（博客操作指南）等。
 
 所以我在 `BLOG_INSTRUCTIONS.md` 里加了"论文精读"章节，告诉 minicat：触发词是什么、流程是什么、脚本在哪。`.skills/` 目录是**工具箱**，`BLOG_INSTRUCTIONS.md` 是**使用说明**——minicat 读了说明，知道工具在哪、怎么用。
 
