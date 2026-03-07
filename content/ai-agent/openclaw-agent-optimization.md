@@ -123,3 +123,35 @@ Skill 会处理完整流程：获取内容 → 提取插图 → 写中文精读 
 涉及的文件：`openclaw.json`、三个 agent 的 `AGENTS.md` 和 `SOUL.md`、`BLOG_INSTRUCTIONS.md`。
 
 核心思路就是一句话：**按实际需求分配资源，不要一刀切。** 不是每个 agent 都需要最强模型，不是每个 agent 都需要每小时醒来，不是每份指令每个 agent 都需要读。
+
+## 额外：安装 ClawHub Skills
+
+优化完资源消耗后，还给 agent 装了两个社区 skill：
+
+### self-improving-agent
+
+从 [ClawHub](https://clawhub.com) 安装的社区 skill。它会自动捕捉 agent 犯的错、用户的纠正、知识空白，记录到 workspace 下的 `.learnings/` 目录（`LEARNINGS.md`、`ERRORS.md`、`FEATURE_REQUESTS.md`）。高价值的 learning 可以被 promote 到 SOUL.md 或 AGENTS.md，变成永久知识。
+
+三个 agent 都装了这个 skill。目的是解决"agent 犯过的错下次又犯"的问题——比如凌若说话太 AI 被我吐槽后，它能自动记住不要用那种语气。
+
+安装方式：
+
+```bash
+cd /Users/minicat/.openclaw/workspace
+clawhub install self-improving-agent
+
+# 其他 agent
+clawhub install self-improving-agent --workdir /Users/minicat/.openclaw/lingro-workspace
+clawhub install self-improving-agent --workdir /Users/minicat/.openclaw/xiaomi-workspace
+```
+
+### find-skills
+
+让 agent 能自己去 ClawHub 搜索和推荐 skill。当 agent 遇到不会做的事时，会主动搜索有没有现成的 skill 可用。只给 minicat 装了，凌若和小蜜不需要。
+
+```bash
+cd /Users/minicat/.openclaw/workspace
+clawhub install find-skills
+```
+
+这两个 skill 的日常 token 开销很小——只有描述文本（几十个字）常驻上下文，完整内容只在触发时才加载。
