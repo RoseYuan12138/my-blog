@@ -185,7 +185,7 @@ In practice: AGENTS.md and HEARTBEAT.md no longer duplicate startup steps or beh
       │          │          │
   ┌───▼───┐  ┌──▼────┐  ┌─▼─────┐
   │凌若 💜│  │minicat │  │小蜜 🏠 │
-  │ Haiku │  │Sonnet  │  │ Haiku  │
+  │ Haiku │  │ Haiku  │  │ Haiku  │
   │       │  │+Opus   │  │        │
   │Bestie  │  │Blog+News│  │DDL Mgr │
   └───┬───┘  └──┬────┘  └──┬─────┘

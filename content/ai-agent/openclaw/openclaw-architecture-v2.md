@@ -185,7 +185,7 @@ minicat cron 周六 10:00 → 博客巡检（TODO / index / wikilink / 目录结
       │          │          │
   ┌───▼───┐  ┌──▼────┐  ┌─▼─────┐
   │凌若 💜│  │minicat │  │小蜜 🏠 │
-  │ Haiku │  │Sonnet  │  │ Haiku  │
+  │ Haiku │  │ Haiku  │  │ Haiku  │
   │       │  │+Opus   │  │        │
   │闺蜜    │  │博客+资讯│  │DDL管家  │
   └───┬───┘  └──┬────┘  └──┬─────┘
