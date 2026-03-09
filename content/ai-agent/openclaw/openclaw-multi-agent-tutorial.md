@@ -8,7 +8,7 @@ tags:
   - Telegram Bot
   - Supermemory
 lang: zh
-english: ai-agent/openclaw-multi-agent-tutorial.en
+english: ai-agent/openclaw/openclaw-multi-agent-tutorial.en
 ---
 
 > 🌐 [Read in English](./openclaw-multi-agent-tutorial.en.md)

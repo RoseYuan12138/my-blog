@@ -7,7 +7,7 @@ tags:
   - automation
   - task management
 lang: en
-chinese: ai-agent/openclaw-ddl-manager
+chinese: ai-agent/openclaw/openclaw-ddl-manager
 ---
 
 > 🌐 [中文版](./openclaw-ddl-manager.md)

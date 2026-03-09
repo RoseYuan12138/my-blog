@@ -5,7 +5,7 @@ tags:
   - OpenClaw
   - Reference
 lang: en
-chinese: ai-agent/openclaw-commands
+chinese: ai-agent/openclaw/openclaw-commands
 ---
 
 > 🌐 [阅读中文版](./openclaw-commands.md)

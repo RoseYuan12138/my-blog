@@ -8,7 +8,7 @@ tags:
   - knowledge management
   - Mac Mini
 lang: en
-chinese: ai-agent/openclaw-blog-workflow
+chinese: ai-agent/openclaw/openclaw-blog-workflow
 ---
 
 > 🌐 [中文版](./openclaw-blog-workflow.md)

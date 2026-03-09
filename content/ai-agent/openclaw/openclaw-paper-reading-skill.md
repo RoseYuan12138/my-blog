@@ -7,7 +7,7 @@ tags:
   - 自动化
   - 论文精读
 lang: zh
-english: ai-agent/openclaw-paper-reading-skill.en
+english: ai-agent/openclaw/openclaw-paper-reading-skill.en
 ---
 
 > 🌐 [Read in English](./openclaw-paper-reading-skill.en.md)

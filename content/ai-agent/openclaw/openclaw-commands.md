@@ -5,7 +5,7 @@ tags:
   - OpenClaw
   - 速查
 lang: zh
-english: ai-agent/openclaw-commands.en
+english: ai-agent/openclaw/openclaw-commands.en
 ---
 
 > 🌐 [Read in English](./openclaw-commands.en.md)

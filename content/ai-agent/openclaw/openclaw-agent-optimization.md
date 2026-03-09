@@ -6,7 +6,7 @@ tags:
   - OpenClaw
   - 系统优化
 lang: zh
-english: ai-agent/openclaw-agent-optimization.en
+english: ai-agent/openclaw/openclaw-agent-optimization.en
 ---
 
 > 🌐 [Read in English](./openclaw-agent-optimization.en.md)

@@ -7,7 +7,7 @@ tags:
   - 自动化
   - 任务管理
 lang: zh
-english: ai-agent/openclaw-ddl-manager.en
+english: ai-agent/openclaw/openclaw-ddl-manager.en
 ---
 
 > 🌐 [Read in English](./openclaw-ddl-manager.en.md)

@@ -6,7 +6,7 @@ tags:
   - OpenClaw
   - Optimization
 lang: en
-chinese: ai-agent/openclaw-agent-optimization
+chinese: ai-agent/openclaw/openclaw-agent-optimization
 ---
 
 > 🌐 [中文版](./openclaw-agent-optimization.md)

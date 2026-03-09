@@ -8,7 +8,7 @@ tags:
   - 知识管理
   - Mac Mini
 lang: zh
-english: ai-agent/openclaw-blog-workflow.en
+english: ai-agent/openclaw/openclaw-blog-workflow.en
 ---
 
 > 🌐 [Read in English](./openclaw-blog-workflow.en.md)

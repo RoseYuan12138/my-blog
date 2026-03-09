@@ -7,7 +7,7 @@ tags:
   - automation
   - paper-reading
 lang: en
-chinese: ai-agent/openclaw-paper-reading-skill
+chinese: ai-agent/openclaw/openclaw-paper-reading-skill
 ---
 
 > 🌐 [中文版](./openclaw-paper-reading-skill.md)
