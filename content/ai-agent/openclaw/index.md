@@ -32,7 +32,7 @@ title: OpenClaw 系列
 
 **⑥ 架构设计文档**
 → [OpenClaw 架构 v2：Memory 分层、Skill 体系、启动文件瘦身](./openclaw-architecture-v2.md)
-完整的架构方案：Memory 三层策略、Skill 体系建设、Heartbeat 再调优、启动文件原则。
+深度优化：记忆系统三层分层（什么时候存、什么时候取）、Agent 职责瘦身、Skill 体系、Heartbeat 再调优。
 
 ---
 

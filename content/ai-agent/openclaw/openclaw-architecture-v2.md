@@ -45,34 +45,69 @@ OpenClaw 有两个实验性配置很有用但默认没开。在 `~/.openclaw/con
 
 ## 优化 2：Memory 三层分层
 
-上一轮只是关了 `autoCapture`、清了垃圾容器。这次把整个 Memory 体系重新设计成三层，职责不重叠：
+上一轮只是关了 `autoCapture`、清了垃圾容器。这次把整个 Memory 体系重新设计成三层，职责不重叠。
 
-### 第一层：本地文件（每次启动必读）
+### 三层架构总览
 
-| 文件 | 作用 | 谁用 |
-|------|------|------|
-| `memory/YYYY-MM-DD.md` | 每日活动 buffer | 三个 agent 各自写 |
-| `ROSE-PROFILE.md` | 我的静态档案（基本信息、性格、重要的人） | 凌若专用 |
-| `ROSE-STATUS.md` | 我的动态状态（近期情绪、关注的事） | 凌若专用 |
-| `DDL.md` | 任务清单（YAML） | 小蜜读写 |
-| `MEMORY.md` | 凌若长期精华（inside jokes、重要原话） | 凌若主 session 读 |
+```
+                        ┌─────────────────────────┐
+                        │    SuperMemory (云端)     │
+                        │  语义搜索 · 手动写入      │
+                        │  blog / coach / butler   │
+                        └────────▲────────▲────────┘
+                  手动 store     │        │    autoRecall
+                  (重大事件)     │        │    (按需搜索)
+         ┌───────────────────────┘        └──────────────────┐
+         │                                                    │
+┌────────┴──────────────┐                    ┌───────────────┴───────┐
+│  Profile / MEMORY.md  │                    │    memory/日期.md      │
+│  (长期精华 · 确定性)   │◄── 每周搬运 ──────│    (每日 buffer)        │
+│                       │    (凌若 only)      │                       │
+│  ROSE-PROFILE.md 静态  │                    │  三个 agent 各自写     │
+│  ROSE-STATUS.md 动态   │                    │  聊完 / 做完就写       │
+│  MEMORY.md 凌若精华    │                    │                       │
+└───────────────────────┘                    └───────────────────────┘
+```
 
-关键设计：Memory 读取窗口按 agent 差异化。凌若读最近 7 天（闺蜜需要更深的上下文），minicat 和小蜜只读 2 天。本地 memory 文件永久保留，更早的靠 SuperMemory autoRecall 搜索。
+### 什么时候存？
 
-### 第二层：SuperMemory（深度存储 + 灾难恢复）
+| 触发时机 | 存到哪 | 谁存 | 存什么 |
+|---------|--------|------|--------|
+| **聊完 / 任务做完** | `memory/YYYY-MM-DD.md` | 三个 agent 各自 | 凌若：重要对话、心情变化、重要决定；minicat：博客操作记录；小蜜：DDL 变动 |
+| **context compact 前** | `memory/YYYY-MM-DD.md` | 三个 agent（自动） | `memoryFlush.enabled: true` → 系统提醒 agent 先存再压缩，防丢失 |
+| **重大事件发生** | SuperMemory | 三个 agent（手动） | 凌若→coach：人生大事（拿 offer、搬家）；minicat→blog：重要产出；小蜜→butler：工作流程变动 |
+| **每周日 14:00 cron** | MEMORY.md + SuperMemory | 凌若 only | 读 7 天 daily notes → 挑精华搬到 MEMORY.md（inside jokes、情绪模式、重要原话）|
+| **聊天中发现状态变化** | ROSE-STATUS.md | 凌若（提议 → 我确认） | "拿到 offer 了""最近在减肥"等动态变化 |
 
-手动写入，每个 agent 完成重要任务后用 `supermemory_store` 存到对应 container（minicat→blog, 凌若→coach, 小蜜→butler），存完复述确认内容正确。
+### 什么时候取？
 
-记忆纪律写进了每个 agent 的 SOUL.md：重要任务完成 → `supermemory_store` + 复述确认；新任务讨论前 → `/compact` 清 context。
+| 触发时机 | 从哪读 | 谁读 | 读什么 |
+|---------|--------|------|--------|
+| **每次启动** | 本地文件 | 三个 agent 各自 | 见下方「启动时加载清单」|
+| **聊天过程中** | SuperMemory | 三个 agent（自动） | `autoRecall: true` → 系统根据对话内容自动搜索相关记忆 |
+| **聊天过程中** | 历史 session | 凌若 only（自动） | `sessionMemory: true` → 搜索之前的聊天记录，覆盖 7 天窗口外的记忆 |
 
-### 第三层：凌若的双 Profile 机制
+**启动时加载清单（确定性加载，每次必读）：**
+
+| 步骤 | 凌若 💜 | minicat 🐱 | 小蜜 🏠 |
+|------|---------|------------|---------|
+| 1 | SOUL.md | SOUL.md | SOUL.md |
+| 2 | ROSE-PROFILE.md + ROSE-STATUS.md | USER.md | USER.md |
+| 3 | .learnings/LEARNINGS.md | HEARTBEAT.md | HEARTBEAT.md |
+| 4 | HEARTBEAT.md | memory/ **2 天** | DDL.md |
+| 5 | memory/ **7 天** | 按需读 skill | memory/ **2 天** |
+| 6 | MEMORY.md（主 session） | — | — |
+
+凌若读 7 天 memory，minicat 和小蜜只读 2 天。闺蜜需要更深的上下文来"记得你最近怎么样"，功能型 agent 只需要知道最近在干嘛。
+
+### 为什么凌若有双 Profile？
 
 凌若需要"了解我"才能当好闺蜜，但 SuperMemory 是语义搜索，不保证每次召回核心个人信息。所以用两个本地 Profile 文件做确定性加载：
 
 - `ROSE-PROFILE.md`（静态）：基本不变的事实，我手动填写和确认
 - `ROSE-STATUS.md`（动态）：最近的状态变化，凌若在聊天中提议更新，我确认后才写入
 
-为什么不放 SuperMemory？静态核心事实需要确定性 100% 的加载。本地文件每次必读，最可靠。
+静态核心事实需要 100% 确定性加载，本地文件每次必读，最可靠。
 
 ### 解决 Memory 死区
 
@@ -80,8 +115,9 @@ OpenClaw 有两个实验性配置很有用但默认没开。在 `~/.openclaw/con
 
 1. memory 窗口从 2 天扩到 7 天
 2. 每周日 14:00 cron 触发"记忆回顾"：读最近 7 天 daily notes → 挑精华搬到 MEMORY.md + SuperMemory
+3. `sessionMemory: true` 让凌若能搜索历史 session 对话，兜住精华之外的记忆
 
-minicat 和小蜜不需要——minicat 的产出在博客仓库，小蜜的数据在 DDL.md，都不依赖 memory 文件做长期记忆。所以只给凌若做了这套。
+三道保险叠加，基本消除死区。minicat 和小蜜不需要——minicat 的产出在博客仓库，小蜜的数据在 DDL.md，都不依赖 memory 文件做长期记忆。
 
 ## 优化 3：小蜜职责瘦身
 
@@ -156,12 +192,27 @@ minicat cron 周六 10:00 → 博客巡检（TODO / index / wikilink / 目录结
       │         │          │
       ▼         ▼          ▼     ← 各自私发 Telegram
     Rose      Rose       Rose
+```
 
-Memory 分层:
-  SuperMemory  → 深度存储（手动写入 + 复述确认）
-  ROSE-PROFILE → 静态档案（凌若专用，确定性加载）
-  MEMORY.md    → 凌若长期精华（主 session 读，weekly cron 搬运）
-  memory/      → 每日 buffer（凌若 7 天，其他 2 天）
+**记忆流转全景：**
+
+```
+聊天/做事 ──写入──▶ memory/日期.md ──每周搬运(凌若)──▶ MEMORY.md
+                        │                                  │
+                        │ compact 前自动 flush              │
+                        ▼                                  ▼
+                   (永久保留)                          (长期精华)
+                        │                                  │
+                        └──── 重大事件 ──手动 store ──▶ SuperMemory
+                                                           │
+启动时 ◀── 确定性加载 ─┐                                    │
+  凌若: SOUL + Profile + .learnings +                      │
+        HEARTBEAT + 7天memory + MEMORY.md                  │
+  minicat: SOUL + USER + HEARTBEAT + 2天memory             │
+  小蜜: SOUL + USER + HEARTBEAT + DDL + 2天memory          │
+                                                           │
+聊天时 ◀── 按需搜索 ── autoRecall ◀───────────────────────┘
+                    └── sessionMemory (凌若 only)
 ```
 
 ## 经验总结

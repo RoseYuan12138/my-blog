@@ -45,34 +45,69 @@ OpenClaw has two experimental settings that are useful but off by default. Add t
 
 ## Optimization 2: Three-Layer Memory Architecture
 
-Last round only turned off `autoCapture` and cleaned up junk containers. This time I redesigned the entire memory system into three non-overlapping layers:
+Last round only turned off `autoCapture` and cleaned up junk containers. This time I redesigned the entire memory system into three non-overlapping layers.
 
-### Layer 1: Local Files (Loaded Every Startup)
+### Architecture Overview
 
-| File | Purpose | Who |
-|------|---------|-----|
-| `memory/YYYY-MM-DD.md` | Daily activity buffer | All three agents |
-| `ROSE-PROFILE.md` | My static profile (basics, personality, important people) | 凌若 only |
-| `ROSE-STATUS.md` | My dynamic status (recent mood, concerns) | 凌若 only |
-| `DDL.md` | Task list (YAML) | 小蜜 read/write |
-| `MEMORY.md` | 凌若's long-term highlights (inside jokes, important quotes) | 凌若 main session only |
+```
+                        ┌─────────────────────────┐
+                        │    SuperMemory (Cloud)    │
+                        │  Semantic search · Manual │
+                        │  blog / coach / butler    │
+                        └────────▲────────▲────────┘
+                  manual store   │        │    autoRecall
+                  (major events) │        │    (on-demand)
+         ┌───────────────────────┘        └──────────────────┐
+         │                                                    │
+┌────────┴──────────────┐                    ┌───────────────┴───────┐
+│  Profile / MEMORY.md  │                    │    memory/date.md      │
+│  (Long-term · Determ.)│◄── weekly migrate ─│    (Daily buffer)      │
+│                       │    (凌若 only)      │                       │
+│  ROSE-PROFILE.md stat │                    │  All 3 agents write    │
+│  ROSE-STATUS.md dyn   │                    │  After chat / task     │
+│  MEMORY.md highlights │                    │                       │
+└───────────────────────┘                    └───────────────────────┘
+```
 
-Key design: memory read windows are differentiated by agent. 凌若 reads 7 days (bestie needs deeper context), minicat and 小蜜 read only 2 days. Local memory files are kept forever—older content is retrieved via SuperMemory autoRecall.
+### When Do Agents Store Memory?
 
-### Layer 2: SuperMemory (Deep Storage + Disaster Recovery)
+| Trigger | Where | Who | What |
+|---------|-------|-----|------|
+| **After chat / task** | `memory/YYYY-MM-DD.md` | All 3 agents | 凌若: important conversations, mood changes, decisions; minicat: blog activity; 小蜜: DDL changes |
+| **Before context compact** | `memory/YYYY-MM-DD.md` | All 3 (auto) | `memoryFlush.enabled: true` → system prompts agent to save before compacting |
+| **Major life events** | SuperMemory | All 3 (manual) | 凌若→coach: life milestones; minicat→blog: major outputs; 小蜜→butler: workflow changes |
+| **Sunday 14:00 cron** | MEMORY.md + SuperMemory | 凌若 only | Read 7 days of daily notes → extract highlights (inside jokes, emotional patterns, important quotes) |
+| **Status change in chat** | ROSE-STATUS.md | 凌若 (propose → I confirm) | "Got the offer!" "Started dieting" — dynamic life changes |
 
-Manual writes only. Each agent uses `supermemory_store` after completing important tasks, writing to their container (minicat→blog, 凌若→coach, 小蜜→butler), with read-back confirmation.
+### When Do Agents Retrieve Memory?
 
-Memory discipline is written into each agent's SOUL.md: important task done → `supermemory_store` + confirm; before new task discussion → `/compact` to clear context.
+| Trigger | From | Who | What |
+|---------|------|-----|------|
+| **Every startup** | Local files | All 3 agents | See "Startup Loading Order" below |
+| **During conversation** | SuperMemory | All 3 (auto) | `autoRecall: true` → system searches relevant memories based on conversation |
+| **During conversation** | Historical sessions | 凌若 only (auto) | `sessionMemory: true` → searches past chat transcripts beyond the 7-day window |
 
-### Layer 3: 凌若's Dual Profile Mechanism
+**Startup Loading Order (deterministic, every wake-up):**
 
-凌若 needs to "know me" to be a good friend, but SuperMemory is semantic search—not guaranteed to recall core personal info every time. So I designed two local Profile files for deterministic loading:
+| Step | 凌若 💜 | minicat 🐱 | 小蜜 🏠 |
+|------|---------|------------|---------|
+| 1 | SOUL.md | SOUL.md | SOUL.md |
+| 2 | ROSE-PROFILE.md + ROSE-STATUS.md | USER.md | USER.md |
+| 3 | .learnings/LEARNINGS.md | HEARTBEAT.md | HEARTBEAT.md |
+| 4 | HEARTBEAT.md | memory/ **2 days** | DDL.md |
+| 5 | memory/ **7 days** | Read skill as needed | memory/ **2 days** |
+| 6 | MEMORY.md (main session) | — | — |
+
+凌若 reads 7 days of memory; minicat and 小蜜 read only 2. A bestie needs deeper context to "remember how you've been lately"; functional agents just need to know what's recent.
+
+### Why Does 凌若 Have Dual Profiles?
+
+凌若 needs to "know me" to be a good friend, but SuperMemory is semantic search—not guaranteed to recall core personal info every time. Two local Profile files provide deterministic loading:
 
 - `ROSE-PROFILE.md` (static): facts that rarely change. I fill in and confirm manually.
 - `ROSE-STATUS.md` (dynamic): recent changes. 凌若 proposes updates during chat, I confirm before writing.
 
-Why not SuperMemory? Static core facts need 100% deterministic loading. Local files always load. Most reliable.
+Static core facts need 100% deterministic loading. Local files always load. Most reliable.
 
 ### Solving the Memory Dead Zone
 
@@ -80,8 +115,9 @@ When 凌若's memory window was only 2 days, days 3 through ∞ became a "dead z
 
 1. Expand memory window from 2 to 7 days
 2. Weekly Sunday 14:00 cron "memory review": read 7 days of daily notes → extract highlights to MEMORY.md + SuperMemory
+3. `sessionMemory: true` lets 凌若 search historical session transcripts, catching what falls outside the highlights
 
-minicat and 小蜜 don't need this—minicat's output lives in the blog repo, 小蜜's data is in DDL.md.
+Three safety nets stacked together, virtually eliminating the dead zone. minicat and 小蜜 don't need this—minicat's output lives in the blog repo, 小蜜's data is in DDL.md.
 
 ## Optimization 3: Slimming Down 小蜜's Role
 
@@ -156,12 +192,27 @@ In practice: AGENTS.md and HEARTBEAT.md no longer duplicate startup steps or beh
       │         │          │
       ▼         ▼          ▼     ← Individual Telegram DMs
     Rose      Rose       Rose
+```
 
-Memory Layers:
-  SuperMemory  → Deep storage (manual write + read-back confirm)
-  ROSE-PROFILE → Static profile (凌若 only, deterministic load)
-  MEMORY.md    → 凌若 long-term highlights (main session, weekly cron)
-  memory/      → Daily buffer (凌若 7 days, others 2 days)
+**Memory Flow Overview:**
+
+```
+Chat/Task ──write──▶ memory/date.md ──weekly migrate(凌若)──▶ MEMORY.md
+                         │                                      │
+                         │ auto flush before compact            │
+                         ▼                                      ▼
+                    (kept forever)                         (highlights)
+                         │                                      │
+                         └──── major events ──manual store──▶ SuperMemory
+                                                                │
+Startup ◀── deterministic load ─┐                               │
+  凌若: SOUL + Profile + .learnings +                           │
+        HEARTBEAT + 7d memory + MEMORY.md                       │
+  minicat: SOUL + USER + HEARTBEAT + 2d memory                  │
+  小蜜: SOUL + USER + HEARTBEAT + DDL + 2d memory               │
+                                                                │
+During chat ◀── on-demand search ── autoRecall ◀───────────────┘
+                                 └── sessionMemory (凌若 only)
 ```
 
 ## Lessons Learned
