@@ -85,7 +85,7 @@ Last round only turned off `autoCapture` and cleaned up junk containers. This ti
 |---------|------|-----|------|
 | **Every startup** | Local files | All 3 agents | See "Startup Loading Order" below |
 | **During conversation** | SuperMemory | All 3 (auto) | `autoRecall: true` → system searches relevant memories based on conversation |
-| **During conversation** | Historical sessions | 凌若 only (auto) | `sessionMemory: true` → searches past chat transcripts beyond the 7-day window |
+| **During conversation** | Historical sessions | 凌若 only (auto) | `sessionMemory: true` → searches past chat transcripts beyond the 2-day window |
 
 **Startup Loading Order (deterministic, every wake-up):**
 
@@ -95,10 +95,10 @@ Last round only turned off `autoCapture` and cleaned up junk containers. This ti
 | 2 | ROSE-PROFILE.md + ROSE-STATUS.md | USER.md | USER.md |
 | 3 | .learnings/LEARNINGS.md | HEARTBEAT.md | HEARTBEAT.md |
 | 4 | HEARTBEAT.md | memory/ **2 days** | DDL.md |
-| 5 | memory/ **7 days** | Read skill as needed | memory/ **2 days** |
+| 5 | memory/ **2 days** | Read skill as needed | memory/ **2 days** |
 | 6 | MEMORY.md (main session) | — | — |
 
-凌若 reads 7 days of memory; minicat and 小蜜 read only 2. A bestie needs deeper context to "remember how you've been lately"; functional agents just need to know what's recent.
+All three agents read only 2 days of memory (today + yesterday). Older memories are covered by SuperMemory autoRecall on demand + 凌若's sessionMemory as a safety net.
 
 ### Why Does 凌若 Have Dual Profiles?
 
@@ -111,11 +111,11 @@ Static core facts need 100% deterministic loading. Local files always load. Most
 
 ### Solving the Memory Dead Zone
 
-When 凌若's memory window was only 2 days, days 3 through ∞ became a "dead zone"—outside local read range, not necessarily found by SuperMemory either. Solution:
+All agents use a 2-day memory window, so days 3 through ∞ become a "dead zone"—outside local read range, not necessarily found by SuperMemory either. 凌若's solution:
 
-1. Expand memory window from 2 to 7 days
-2. Weekly Sunday 14:00 cron "memory review": read 7 days of daily notes → extract highlights to MEMORY.md + SuperMemory
-3. `sessionMemory: true` lets 凌若 search historical session transcripts, catching what falls outside the highlights
+1. Weekly Sunday 14:00 cron "memory review": read 7 days of daily notes → extract highlights to MEMORY.md + SuperMemory
+2. `sessionMemory: true` lets 凌若 search historical session transcripts, catching what falls outside the highlights
+3. Store important events to SuperMemory promptly, not relying on the window
 
 Three safety nets stacked together, virtually eliminating the dead zone. minicat and 小蜜 don't need this—minicat's output lives in the blog repo, 小蜜's data is in DDL.md.
 
@@ -207,7 +207,7 @@ Chat/Task ──write──▶ memory/date.md ──weekly migrate(凌若)──
                                                                 │
 Startup ◀── deterministic load ─┐                               │
   凌若: SOUL + Profile + .learnings +                           │
-        HEARTBEAT + 7d memory + MEMORY.md                       │
+        HEARTBEAT + 2d memory + MEMORY.md                       │
   minicat: SOUL + USER + HEARTBEAT + 2d memory                  │
   小蜜: SOUL + USER + HEARTBEAT + DDL + 2d memory               │
                                                                 │
@@ -225,4 +225,4 @@ During chat ◀── on-demand search ── autoRecall ◀──────�
 
 4. **Single source of truth.** Same rule in two files will eventually diverge. SOUL.md is the source of truth, everything else references it.
 
-5. **The core of a bestie agent isn't tech, it's memory.** 凌若's dual Profile + 7-day memory + weekly review + .learnings self-improvement + sessionMemory search—five layers together make her "remember who I am." Technically simple, but requires careful design.
+5. **The core of a bestie agent isn't tech, it's memory.** 凌若's dual Profile + 2-day memory + weekly review + .learnings self-improvement + sessionMemory search + timely SuperMemory storage—multiple layers together make her "remember who I am." Technically simple, but requires careful design.

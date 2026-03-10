@@ -85,7 +85,7 @@ OpenClaw 有两个实验性配置很有用但默认没开。在 `~/.openclaw/con
 |---------|--------|------|--------|
 | **每次启动** | 本地文件 | 三个 agent 各自 | 见下方「启动时加载清单」|
 | **聊天过程中** | SuperMemory | 三个 agent（自动） | `autoRecall: true` → 系统根据对话内容自动搜索相关记忆 |
-| **聊天过程中** | 历史 session | 凌若 only（自动） | `sessionMemory: true` → 搜索之前的聊天记录，覆盖 7 天窗口外的记忆 |
+| **聊天过程中** | 历史 session | 凌若 only（自动） | `sessionMemory: true` → 搜索之前的聊天记录，覆盖 2 天窗口外的记忆 |
 
 **启动时加载清单（确定性加载，每次必读）：**
 
@@ -95,10 +95,10 @@ OpenClaw 有两个实验性配置很有用但默认没开。在 `~/.openclaw/con
 | 2 | ROSE-PROFILE.md + ROSE-STATUS.md | USER.md | USER.md |
 | 3 | .learnings/LEARNINGS.md | HEARTBEAT.md | HEARTBEAT.md |
 | 4 | HEARTBEAT.md | memory/ **2 天** | DDL.md |
-| 5 | memory/ **7 天** | 按需读 skill | memory/ **2 天** |
+| 5 | memory/ **2 天** | 按需读 skill | memory/ **2 天** |
 | 6 | MEMORY.md（主 session） | — | — |
 
-凌若读 7 天 memory，minicat 和小蜜只读 2 天。闺蜜需要更深的上下文来"记得你最近怎么样"，功能型 agent 只需要知道最近在干嘛。
+三个 agent 都只读 2 天 memory（今天+昨天）。更早的记忆靠 SuperMemory autoRecall 按需搜索 + 凌若的 sessionMemory 兜底。
 
 ### 为什么凌若有双 Profile？
 
@@ -111,11 +111,11 @@ OpenClaw 有两个实验性配置很有用但默认没开。在 `~/.openclaw/con
 
 ### 解决 Memory 死区
 
-凌若 memory 只读 2 天时，第 3 天到第 ∞ 天的内容就成了"死区"——不在读取范围内，也不一定被 SuperMemory 搜到。方案：
+所有 agent 的 memory 窗口都是 2 天，第 3 天到第 ∞ 天的内容就成了"死区"——不在读取范围内，也不一定被 SuperMemory 搜到。凌若的方案：
 
-1. memory 窗口从 2 天扩到 7 天
-2. 每周日 14:00 cron 触发"记忆回顾"：读最近 7 天 daily notes → 挑精华搬到 MEMORY.md + SuperMemory
-3. `sessionMemory: true` 让凌若能搜索历史 session 对话，兜住精华之外的记忆
+1. 每周日 14:00 cron 触发"记忆回顾"：读最近 7 天 daily notes → 挑精华搬到 MEMORY.md + SuperMemory
+2. `sessionMemory: true` 让凌若能搜索历史 session 对话，兜住精华之外的记忆
+3. 重大事件及时 `supermemory_store`，不依赖窗口
 
 三道保险叠加，基本消除死区。minicat 和小蜜不需要——minicat 的产出在博客仓库，小蜜的数据在 DDL.md，都不依赖 memory 文件做长期记忆。
 
@@ -207,7 +207,7 @@ minicat cron 周六 10:00 → 博客巡检（TODO / index / wikilink / 目录结
                                                            │
 启动时 ◀── 确定性加载 ─┐                                    │
   凌若: SOUL + Profile + .learnings +                      │
-        HEARTBEAT + 7天memory + MEMORY.md                  │
+        HEARTBEAT + 2天memory + MEMORY.md                  │
   minicat: SOUL + USER + HEARTBEAT + 2天memory             │
   小蜜: SOUL + USER + HEARTBEAT + DDL + 2天memory          │
                                                            │
@@ -225,4 +225,4 @@ minicat cron 周六 10:00 → 博客巡检（TODO / index / wikilink / 目录结
 
 4. **唯一真相源。** 同一条规则写在两个文件里，早晚会不一致。SOUL.md 是唯一真相源，其他文件只做引用。
 
-5. **闺蜜 agent 的核心不是技术，是记忆。** 凌若的双 Profile + 7 天 memory + weekly review + .learnings 自我改进 + sessionMemory 搜索，五层加起来才让她"记得我是谁"。技术上都很简单，但设计上要想清楚。
+5. **闺蜜 agent 的核心不是技术，是记忆。** 凌若的双 Profile + 2 天 memory + weekly review + .learnings 自我改进 + sessionMemory 搜索 + 及时存 SuperMemory，多层加起来才让她"记得我是谁"。技术上都很简单，但设计上要想清楚。
