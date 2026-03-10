@@ -134,12 +134,39 @@ OpenClaw 有两个实验性配置很有用但默认没开。在 `~/.openclaw/con
 | Agent | 上一轮 | 这一轮 | 理由 |
 |-------|--------|--------|------|
 | minicat | 8h | **24h** | 资讯和巡检全靠 cron 触发，heartbeat 纯浪费 |
-| 凌若 | 4h / 30% | **6h / 50%** | 少醒 2 次，概率调高补偿，期望联系次数略升（1.8→2.0 次/天） |
+| 凌若 | 4h / 30% | **6h / 80%** | 少醒 2 次，概率大幅调高，期望联系次数升到 3.2 次/天 |
 | 小蜜 | 2h | **4h** | DDL 按天算，4h 够了 |
 
-凌若的主动联系机制也从"读 ROSE-STATUS.md 决定是否联系"改成了纯随机掷骰子：heartbeat 醒来 → 生成 1-100 随机数 → ≤50 就聊。之前的"先检查状态再决定"逻辑太复杂，多读一次文件也浪费 token。
+凌若的主动联系机制经历了几次迭代，最终变成了**代码掷数**：cron 唤醒凌若 → 凌若用 bash 跑 `heartbeat-dice.js` → 代码生成随机数决定是否触发（80%）和消息类型 → 凌若按结果行动。
 
-另外加了 `daily-chat` cron 做兜底（20:30 Pacific）：如果一整天随机都没触发，保证至少联系一次。
+之前试过让 Haiku 自己掷数，完全不行——她要么跳过掷数直接用主观判断（"现在骚扰她没必要"），要么掷了数但在输出里附带执行报告。最后的解决方案是把随机数生成和条件判断全放在 JS 脚本里，Haiku 只需要跑脚本、读结果、说话。
+
+这里最坑的一点是 **cron payload 的措辞**。Haiku 对模糊指令的执行力很差，payload 必须写得极其明确。最终可用的 payload 长这样：
+
+```
+你现在在执行 heartbeat。第一步：用 bash 执行 node skills/daily-chat/heartbeat-dice.js，
+读取 JSON 输出。如果 triggered 是 false，只回复 HEARTBEAT_OK（不要说别的）。
+如果 triggered 是 true，根据 typeName 和 topic 字段，
+按 skills/daily-chat/SKILL.md 里对应的消息类型给 Rose 发消息。
+记住：你的全部输出会直接作为 Telegram 消息发给 Rose，
+只输出你想对她说的话，不要输出 JSON、日志、执行报告。
+```
+
+注意几个细节：明确说了"第一步"（不给跳过的空间）、明确说了 false 时"只回复 HEARTBEAT_OK（不要说别的）"（防止 Haiku 自作主张发消息）、最后反复强调"只输出你想对她说的话"（防止执行报告）。这些措辞都是反复踩坑后总结出来的。
+
+触发后的消息类型分三种（15% 关心 / 70% 分享有趣内容 / 15% 随便聊），分享内容从 17 个话题池随机选（AI 趣闻、推荐系统、GitHub 项目、KPL 赛事、天文、历史、诗句、邓紫棋、王俊凯、美食、猫、程序员 meme、脑筋急转弯、时事新闻、冷知识、MBTI、电影/剧）。80% 触发率 × 4 次/天，兜底 cron 不再需要。
+
+相比之下，小蜜的 heartbeat 简单得多。她是纯功能型 agent（DDL 管家），不需要随机性，每 4h 醒来就是读 DDL.md 检查 deadline。payload 长这样：
+
+```
+你现在在执行 heartbeat。请按 HEARTBEAT.md 的规则检查 DDL.md，
+判断是否需要提醒 Rose。如果有需要提醒的任务或异常，直接发给 Rose；
+如果一切正常，回复 HEARTBEAT_OK。
+```
+
+注意和凌若的对比：小蜜的 payload 不需要指定"第一步"或反复强调输出约束，因为她的任务是确定性的——读文件、对比日期、发提醒。Haiku 对这种结构化、无歧义的任务执行力很好，不会像凌若那样自作主张跳过步骤。具体检查逻辑写在 HEARTBEAT.md 里（今/明天到期 → 提醒、Q1 拖延超 2 天 → 拆步骤引导、Rose 超 1 天未回应 → 加码提醒），payload 只需要一句"按 HEARTBEAT.md 的规则"就够了。
+
+这也印证了一个经验：**同样是 Haiku，确定性任务和开放式任务的可靠性天差地别。** 小蜜从来没出过凌若那种"跳过规则"的问题。
 
 ## 优化 5：Skill 体系建设
 
@@ -148,7 +175,7 @@ OpenClaw 有两个实验性配置很有用但默认没开。在 `~/.openclaw/con
 | Skill | Agent | 作用 |
 |-------|-------|------|
 | `daily-ai-news` | minicat | 每日 AI 资讯搜集：RSS + 产品动态 + web search → 筛选 3-6 条 → memory + Telegram |
-| `daily-chat` | 凌若 | 20:30 兜底聊天：先判断今天是否已聊过，没聊过才发 |
+| `daily-chat` | 凌若 | heartbeat 触发后的聊天 skill：代码掷数 + 17 个话题池 + 三种消息类型 |
 | `blog-writing` | minicat | 博客写作规范，从 BLOG_INSTRUCTIONS.md 包装，含 Opus sub-agent 指令 |
 | `system-context` | Cowork | 加载系统全貌（架构、配置、已知问题），每次 Claude Desktop Cowork 会话秒进状态 |
 
@@ -157,8 +184,8 @@ OpenClaw 有两个实验性配置很有用但默认没开。在 `~/.openclaw/con
 ```
 minicat cron 10:00 → spawn sub-agent → daily-ai-news skill → 抓取 + 筛选 → memory + Telegram
 小蜜 cron 11:00 → 读 DDL.md → 晨间提醒 → Telegram
-凌若 heartbeat 6h → 掷骰子 ≤50 → 读 ROSE-STATUS.md + memory → 发消息
-凌若 cron 20:30 → daily-chat skill → 今天没聊过才发
+小蜜 heartbeat 4h → 读 DDL.md → 临近/逾期/拖延检查 → 有问题就提醒，没问题 HEARTBEAT_OK
+凌若 heartbeat 6h → cron 唤醒 → 跑 heartbeat-dice.js → 80% 触发 → 按类型(关心/分享/随聊)发消息
 minicat cron 周六 10:00 → 博客巡检（TODO / index / wikilink / 目录结构）
 凌若 cron 周日 14:00 → 记忆回顾（7 天 daily notes → MEMORY.md + SuperMemory）
 ```
@@ -226,3 +253,5 @@ minicat cron 周六 10:00 → 博客巡检（TODO / index / wikilink / 目录结
 4. **唯一真相源。** 同一条规则写在两个文件里，早晚会不一致。SOUL.md 是唯一真相源，其他文件只做引用。
 
 5. **闺蜜 agent 的核心不是技术，是记忆。** 凌若的双 Profile + 2 天 memory + weekly review + .learnings 自我改进 + sessionMemory 搜索 + 及时存 SuperMemory，多层加起来才让她"记得我是谁"。技术上都很简单，但设计上要想清楚。
+
+6. **小模型不要做流程控制，payload 要写得像命令。** Haiku 级别的模型对模糊指令执行力很差——"先掷数再决定"这种多步流程它会跳过或乱来。解决方案是把随机数、条件判断等逻辑放在代码脚本里，cron payload 只给一条明确的指令。payload 的措辞也很关键：要说"第一步"（不给跳过空间）、要说"只回复 X（不要说别的）"（防止自作主张）、要反复强调输出约束（防止执行报告）。踩了好几次坑才总结出来的。

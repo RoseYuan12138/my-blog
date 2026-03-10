@@ -134,12 +134,39 @@ Last round went from uniform 1h to 8h / 4h / 2h. After a few days, found room fo
 | Agent | Last Round | This Round | Why |
 |-------|-----------|------------|-----|
 | minicat | 8h | **24h** | News and audits are all cron-driven, heartbeat is pure waste |
-| 凌若 | 4h / 30% | **6h / 50%** | 2 fewer wake-ups, higher probability compensates, expected contacts slightly up (1.8→2.0/day) |
+| 凌若 | 4h / 30% | **6h / 80%** | 2 fewer wake-ups, much higher probability, expected contacts up to 3.2/day |
 | 小蜜 | 2h | **4h** | DDL is daily granularity, 4h is enough |
 
-凌若's proactive outreach also changed from "check ROSE-STATUS.md then decide" to pure random dice roll: heartbeat wakes → random 1-100 → ≤50 means chat. The old "check status first" logic was overcomplicated and wasted tokens reading a file.
+凌若's proactive outreach went through several iterations and ended up as **code-driven dice rolling**: cron wakes 凌若 → she runs `heartbeat-dice.js` via bash → the script generates a random number deciding whether to trigger (80%) and what message type → 凌若 acts on the result.
 
-Added a `daily-chat` cron as fallback (20:30 Pacific): if randomness doesn't trigger all day, guarantees at least one contact.
+I tried letting Haiku roll the dice herself—total failure. She'd either skip the dice roll entirely and use subjective judgment ("no need to bother her right now"), or roll the dice but attach execution reports to her output. The solution was putting all random number generation and conditional logic in a JS script. Haiku just needs to run the script, read the result, and talk.
+
+The trickiest part is **cron payload wording**. Haiku has poor execution reliability with vague instructions—the payload must be extremely explicit. Here's the final working version:
+
+```
+你现在在执行 heartbeat。第一步：用 bash 执行 node skills/daily-chat/heartbeat-dice.js，
+读取 JSON 输出。如果 triggered 是 false，只回复 HEARTBEAT_OK（不要说别的）。
+如果 triggered 是 true，根据 typeName 和 topic 字段，
+按 skills/daily-chat/SKILL.md 里对应的消息类型给 Rose 发消息。
+记住：你的全部输出会直接作为 Telegram 消息发给 Rose，
+只输出你想对她说的话，不要输出 JSON、日志、执行报告。
+```
+
+A few key details: explicitly says "first step" (no room to skip), explicitly says "only reply HEARTBEAT_OK (don't say anything else)" for the false case (prevents Haiku from sending unsolicited messages), and repeatedly emphasizes "only output what you want to say to her" (prevents execution reports). Every single phrasing choice was learned through painful trial and error.
+
+Once triggered, message types split three ways (15% care / 70% share interesting content / 15% casual chat), with share topics randomly drawn from a pool of 17 (AI fun, recsys, GitHub projects, KPL esports, astronomy, history, poetry, G.E.M., Karry Wang, food, cats, dev memes, brain teasers, current events, fun facts, MBTI, movies/shows). At 80% trigger rate × 4 times/day, a fallback cron is no longer needed.
+
+By contrast, 小蜜's heartbeat is much simpler. As a purely functional agent (DDL manager), she doesn't need randomness—just wakes up every 4h and checks DDL.md for deadlines. Her payload:
+
+```
+你现在在执行 heartbeat。请按 HEARTBEAT.md 的规则检查 DDL.md，
+判断是否需要提醒 Rose。如果有需要提醒的任务或异常，直接发给 Rose；
+如果一切正常，回复 HEARTBEAT_OK。
+```
+
+Notice the contrast with 凌若: 小蜜's payload doesn't need "first step" or repeated output constraints because her task is deterministic—read file, compare dates, send reminders. Haiku handles this kind of structured, unambiguous task very well, never pulling the "skip the rules" behavior that plagued 凌若. The specific checking logic lives in HEARTBEAT.md (due today/tomorrow → alert, Q1 task stale >2 days → suggest minimal next step, Rose unresponsive >1 day → escalate reminders), and the payload only needs to say "follow HEARTBEAT.md rules."
+
+This confirms an important lesson: **same Haiku model, but deterministic tasks and open-ended tasks have vastly different reliability.** 小蜜 has never had the "skip the rules" problem that 凌若 kept exhibiting.
 
 ## Optimization 5: Skill System
 
@@ -148,7 +175,7 @@ Last round only installed community skills (self-improving-agent, find-skills). 
 | Skill | Agent | Purpose |
 |-------|-------|---------|
 | `daily-ai-news` | minicat | Daily AI news: RSS + product launches + web search → 3-6 items → memory + Telegram |
-| `daily-chat` | 凌若 | 20:30 fallback chat: checks if already chatted today, skips if so |
+| `daily-chat` | 凌若 | Heartbeat-triggered chat skill: code-driven dice + 17 topic pool + 3 message types |
 | `blog-writing` | minicat | Blog writing conventions, wrapped from BLOG_INSTRUCTIONS.md, with Opus sub-agent |
 | `system-context` | Cowork | Load full system overview at the start of a Claude Desktop Cowork session |
 
@@ -157,8 +184,8 @@ Core pattern: heartbeat/cron triggers → spawn sub-agent → run skill. Avoids 
 ```
 minicat cron 10:00 → spawn sub-agent → daily-ai-news skill → fetch + filter → memory + Telegram
 小蜜 cron 11:00 → read DDL.md → morning reminder → Telegram
-凌若 heartbeat 6h → dice roll ≤50 → read ROSE-STATUS.md + memory → send message
-凌若 cron 20:30 → daily-chat skill → only if no chat today
+小蜜 heartbeat 4h → read DDL.md → due/overdue/stale check → alert if needed, HEARTBEAT_OK otherwise
+凌若 heartbeat 6h → cron wakes → run heartbeat-dice.js → 80% trigger → send message by type (care/share/casual)
 minicat cron Sat 10:00 → blog audit (TODO / index / wikilink / directory structure)
 凌若 cron Sun 14:00 → memory review (7 days daily notes → MEMORY.md + SuperMemory)
 ```
@@ -226,3 +253,5 @@ During chat ◀── on-demand search ── autoRecall ◀──────�
 4. **Single source of truth.** Same rule in two files will eventually diverge. SOUL.md is the source of truth, everything else references it.
 
 5. **The core of a bestie agent isn't tech, it's memory.** 凌若's dual Profile + 2-day memory + weekly review + .learnings self-improvement + sessionMemory search + timely SuperMemory storage—multiple layers together make her "remember who I am." Technically simple, but requires careful design.
+
+6. **Small models shouldn't do flow control—payloads must read like commands.** Haiku-class models have poor execution reliability with vague instructions—multi-step flows like "roll dice then decide" get skipped or mangled. The fix is putting random number generation and conditional logic in code scripts, with the cron payload giving one clear instruction. Payload wording matters enormously: say "first step" (no room to skip), say "only reply X (don't say anything else)" (prevent freelancing), and repeat output constraints (prevent execution reports). Every one of these was learned by getting burned.
