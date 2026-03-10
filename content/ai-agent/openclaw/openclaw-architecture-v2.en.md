@@ -255,3 +255,12 @@ During chat ◀── on-demand search ── autoRecall ◀──────�
 5. **The core of a bestie agent isn't tech, it's memory.** 凌若's dual Profile + 2-day memory + weekly review + .learnings self-improvement + sessionMemory search + timely SuperMemory storage—multiple layers together make her "remember who I am." Technically simple, but requires careful design.
 
 6. **Small models shouldn't do flow control—payloads must read like commands.** Haiku-class models have poor execution reliability with vague instructions—multi-step flows like "roll dice then decide" get skipped or mangled. The fix is putting random number generation and conditional logic in code scripts, with the cron payload giving one clear instruction. Payload wording matters enormously: say "first step" (no room to skip), say "only reply X (don't say anything else)" (prevent freelancing), and repeat output constraints (prevent execution reports). Every one of these was learned by getting burned.
+
+---
+
+## Related Reading
+
+- [[openclaw-agent-optimization|Multi-Agent System Optimization: Cost Control and Performance Improvements Based on This Architecture]]
+- [[openclaw-multi-agent-tutorial|OpenClaw Multi-Agent Tutorial: From Configuration to Practice]]
+- [[openclaw-blog-workflow|Blog Workflow: Maintaining Your Knowledge Base with Skills]]
+- [[openclaw-ddl-manager|DDL Manager: Design and Implementation of 小蜜's System]]

@@ -255,3 +255,12 @@ minicat cron 周六 10:00 → 博客巡检（TODO / index / wikilink / 目录结
 5. **闺蜜 agent 的核心不是技术，是记忆。** 凌若的双 Profile + 2 天 memory + weekly review + .learnings 自我改进 + sessionMemory 搜索 + 及时存 SuperMemory，多层加起来才让她"记得我是谁"。技术上都很简单，但设计上要想清楚。
 
 6. **小模型不要做流程控制，payload 要写得像命令。** Haiku 级别的模型对模糊指令执行力很差——"先掷数再决定"这种多步流程它会跳过或乱来。解决方案是把随机数、条件判断等逻辑放在代码脚本里，cron payload 只给一条明确的指令。payload 的措辞也很关键：要说"第一步"（不给跳过空间）、要说"只回复 X（不要说别的）"（防止自作主张）、要反复强调输出约束（防止执行报告）。踩了好几次坑才总结出来的。
+
+---
+
+## 相关阅读
+
+- [[openclaw-agent-optimization|多 Agent 系统优化：基于这个架构的成本控制与性能提升]]
+- [[openclaw-multi-agent-tutorial|OpenClaw 多 Agent 教程：从配置到实践]]
+- [[openclaw-blog-workflow|博客工作流：如何在 Skill 体系下维护知识库]]
+- [[openclaw-ddl-manager|DDL 管家：小蜜系统的设计与实现]]

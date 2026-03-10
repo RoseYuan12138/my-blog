@@ -157,3 +157,11 @@ req_1, 用户A → item_3(舞蹈)  label=0
 | 负样本来源 | 其他 query 的正样本 doc | 同 request 负样本 + 其他用户所有样本 |
 | 语义关联强度 | 强（query-doc 直接匹配） | 较弱（用户兴趣-候选 间接推理） |
 | Contrastive Loss 定位 | 核心训练目标 | 辅助 loss，配合主 CTR loss |
+
+---
+
+## 延伸阅读
+
+推荐系统在效率优化上还有很多可借鉴的 ML 技巧，如 Transformer 在注意力机制上的改进可以应用于长序列用户历史的处理：
+
+- [[flash-attention-varlen|Flash-Attention: 处理变长序列的高效注意力]]（在处理长历史序列时的参考）

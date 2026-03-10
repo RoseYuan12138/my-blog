@@ -155,3 +155,11 @@ clawhub install find-skills
 ```
 
 Both skills have minimal daily token overhead — only a short description string stays in context for trigger matching. The full SKILL.md content only loads when activated.
+
+---
+
+## Related Reading
+
+- [[openclaw-architecture-v2|OpenClaw Multi-Agent Architecture: Design Philosophy and Complete System Design]]
+- [[openclaw-multi-agent-tutorial|OpenClaw Multi-Agent Tutorial: From Configuration to Practice]]
+- [[openclaw-ddl-manager|DDL Manager: Design and Implementation of 小蜜's System]]

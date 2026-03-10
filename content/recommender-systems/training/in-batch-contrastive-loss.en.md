@@ -157,3 +157,11 @@ If semantic signal is too weak, consider: shortening the history sequence (only 
 | Negative sources | Other queries' positive docs | Same-request negatives + all other users' items |
 | Semantic signal strength | Strong (direct query-doc matching) | Weaker (indirect user interest → candidate inference) |
 | Contrastive loss role | Core training objective | Auxiliary loss alongside main CTR loss |
+
+---
+
+## Extended Reading
+
+Recommendation systems can benefit from many ML efficiency optimization techniques from Transformer research. For example, Transformer's attention mechanism improvements can be applied to long user history sequence processing:
+
+- [[flash-attention-varlen|Flash-Attention: Efficient Attention for Variable-Length Sequences]]（as a reference for long history sequence processing）

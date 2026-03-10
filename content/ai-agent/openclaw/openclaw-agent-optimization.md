@@ -155,3 +155,11 @@ clawhub install find-skills
 ```
 
 这两个 skill 的日常 token 开销很小——只有描述文本（几十个字）常驻上下文，完整内容只在触发时才加载。
+
+---
+
+## 相关阅读
+
+- [[openclaw-architecture-v2|OpenClaw 多 Agent 架构：设计理念与完整系统设计]]
+- [[openclaw-multi-agent-tutorial|OpenClaw 多 Agent 教程：从配置到实践]]
+- [[openclaw-ddl-manager|DDL 管家：小蜜系统的设计与实现]]
