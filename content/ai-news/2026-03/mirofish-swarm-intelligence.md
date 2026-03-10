@@ -21,7 +21,7 @@ english: ai-news/2026-03/mirofish-swarm-intelligence.en
 
 ## 什么是 MiroFish
 
-[MiroFish](https://github.com/666ghj/MiroFish) 是一个基于多智能体技术的 AI 预测引擎，由盛大集团孵化。核心思路：
+[MiroFish](https://github.com/666ghj/MiroFish) 是一个基于多智能体技术的 AI 预测引擎，由盛大集团战略支持和孵化，已获融资 3000 万元。2026 年 3 月登顶 GitHub Trending，代表了 AI 社区对多智能体社会模拟方向的热切关注。核心思路：
 
 > **与其预测未来，不如模拟未来。**
 
@@ -59,7 +59,10 @@ english: ai-news/2026-03/mirofish-swarm-intelligence.en
 - 注入新事件（元春薨逝），观察连锁反应
 - 每个人物根据自己的性格、记忆和社会关系做决策，涌现出群体命运
 
-## 群体涌现的理论基础
+**完整演示视频**：[《红楼梦》失传结局预测（B 站）](https://www.bilibili.com/video/BV1cPk3BBExq/)——看 MiroFish 如何让数千个角色 Agent 自由交互，预演出一个完整的结局故事。
+
+## 群体涌现的理论基础</thinking>
+</invoke>
 
 MiroFish 的核心 bet 是：**群体智能（Swarm Intelligence）能产生单体无法达到的预测能力**。这背后有坚实的理论基础。
 
