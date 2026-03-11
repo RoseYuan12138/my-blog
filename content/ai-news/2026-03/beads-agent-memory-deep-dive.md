@@ -8,11 +8,24 @@ tags:
   - 图结构
   - Dolt
 lang: zh
-related:
-  - "[[ai-agent/beads-agent-memory]]"
 ---
 
-> 这是对 GitHub Trending 项目 [Beads](https://github.com/steveyegge/beads) 的深度分析。之前写过一篇[简介笔记](../ai-agent/beads-agent-memory.md)，这篇在那个基础上大幅扩充，把 Beads 背后的设计思想拆开来讲。
+> 这是对 GitHub Trending 项目 [Beads](https://github.com/steveyegge/beads) 的深度分析。本篇深入讲解 Beads 背后的设计思想和工作原理。
+
+## 零、Beads 是什么
+
+[Beads](https://github.com/steveyegge/beads) 由 Steve Yegge 开发，是一个 **为 AI coding agent 专属设计的持久化记忆系统**。
+
+核心概念很简单：
+- **问题**：LLM coding agent（如 Claude Code、Codex）无法跨 session 保持上下文，长期开发任务时常"失忆"
+- **解决方案**：用结构化的、git-backed 的图结构（DAG）作为 agent 的"大脑"，替代混乱的 markdown 计划文件
+- **工作方式**：Agent 可以通过 `bd ready` 自动发现当前可以做的任务，通过 `bd claim` 认领，通过 `bd update` 更新进度
+
+底层驱动是 [Dolt](https://github.com/dolthub/dolt)（版本控制的 SQL 数据库），支持分布式多 agent 协作、cell-level merge、完整的审计轨迹。
+
+**18.7k+ GitHub stars**，Steve Yegge 花了 40 天 40 夜 vibe coding，先烧掉了 350k 行代码的 vibecoder 项目，从灰烬中诞生了 Beads。
+
+---
 
 ## 一、核心问题：Agent 为什么会"失忆"
 

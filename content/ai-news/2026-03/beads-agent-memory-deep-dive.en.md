@@ -9,11 +9,24 @@ tags:
   - Dolt
 lang: en
 chinese: ./beads-agent-memory-deep-dive.md
-related:
-  - "[[ai-agent/beads-agent-memory]]"
 ---
 
-> This is a deep dive into the GitHub Trending project [Beads](https://github.com/steveyegge/beads). I previously wrote a [brief overview](../ai-agent/beads-agent-memory.md); this article significantly expands on that, breaking down the design philosophy behind Beads.
+> This is a deep dive into the GitHub Trending project [Beads](https://github.com/steveyegge/beads), exploring the design philosophy and principles behind this innovative memory system.
+
+## 0. What is Beads?
+
+[Beads](https://github.com/steveyegge/beads), developed by Steve Yegge, is a **dedicated persistent memory system designed specifically for AI coding agents**.
+
+The core concept is straightforward:
+- **The Problem**: LLM coding agents (like Claude Code, Codex) lose context across sessions, frequently "forgetting" their progress in long-term development tasks
+- **The Solution**: Replace messy markdown plan files with a structured, git-backed graph structure (DAG) that serves as the agent's "brain"
+- **How It Works**: Agents can automatically discover what tasks are ready to work on via `bd ready`, claim tasks with `bd claim`, and update progress with `bd update`
+
+The underlying engine is [Dolt](https://github.com/dolthub/dolt) (version-controlled SQL database), enabling distributed multi-agent collaboration, cell-level merges, and complete audit trails.
+
+With **18.7k+ GitHub stars**, Beads is Steve Yegge's creation after 40 days of intense vibe coding. He burned down the original vibecoder project (350k LOC) due to architectural issues, and Beads emerged from the ashes.
+
+---
 
 ## 1. The Core Problem: Why Agents "Lose Their Memory"
 
