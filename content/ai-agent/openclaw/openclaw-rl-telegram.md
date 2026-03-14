@@ -22,15 +22,15 @@ english: ai-agent/openclaw/openclaw-rl-telegram.en
 
 ## 什么是 Tinker
 
-[Tinker](https://tinker-docs.thinkingmachines.ai/) 是一个分布式训练 API，专为 LLM 微调设计。它的核心理念是把分布式 GPU 训练的基础设施复杂度抽象掉——你只需要在本地 CPU 机器上写简单的 Python 脚本指定训练逻辑和 loss 函数，Tinker 在云端管理实际的分布式计算。它提供三个核心原语：`forward_backward()`（梯度计算）、`optim_step()`（模型更新）和 `sample()`（生成输出），支持 LoRA 微调 Qwen、Llama 等开源模型。
+[Tinker](https://tinker-docs.thinkingmachines.ai/) 是一个分布式 LLM 微调 API。核心价值：本地 CPU 机器 + 云端 GPU，Tinker 负责抽象掉分布式训练的复杂度。你可以在 Mac mini 上跑一个轻量代理，它会把推理和 LoRA 训练的请求转发到 Tinker 云。
 
-OpenClaw-RL 利用 Tinker 的能力构建了完整的对话 RL 训练流程（也就是 [[ai-agent/papers-reading/openclaw-rl|论文]] 里的 Personal Agent 轨道）：
+OpenClaw-RL 利用 Tinker 实现完整的对话 RL 流程（[[ai-agent/papers-reading/openclaw-rl|论文]] 里的 Personal Agent 轨道）：
 
-- **推理**：你在 Telegram 发消息，请求经本地代理转发到 Tinker 云，由云端模型生成回复（通过 `sample()`）
-- **训练数据采集**：对话自动被 OpenClaw-Tinker 收集为训练样本
-- **RL 训练**：凑满一个 batch 后，在云端跑一步 LoRA RL 更新（通过 `forward_backward()` + `optim_step()`）
+1. **推理**：Telegram 消息 → OpenClaw Gateway → 本地代理 → Tinker 云（云端模型生成回复）
+2. **数据采集**：对话自动被 OpenClaw-Tinker 收集为训练样本
+3. **RL 训练**：凑满一个 batch，在云端跑一步 LoRA RL 更新
 
-OpenClaw-RL 支持 OPD（Online Policy Distillation）、RL（强化学习）和 combine（两者结合）三种训练方法，combine 效果最好。关于这三种方法的原理和实验对比，详见 [[ai-agent/papers-reading/openclaw-rl#学习方法|论文笔记的学习方法部分]]。
+OpenClaw-RL 支持三种训练方法：OPD（在线蒸馏）、RL（强化学习）、combine（两者结合）。combine 效果最好。详见 [[ai-agent/papers-reading/openclaw-rl#学习方法|论文笔记的学习方法部分]]。
 
 ### Tinker 支持的模型
 
