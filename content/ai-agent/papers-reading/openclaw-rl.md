@@ -9,7 +9,7 @@ lang: zh
 english: ai-agent/papers-reading/openclaw-rl.en
 ---
 
-> 📖 **这是论文精读笔记。** 想看实际部署指南？→ [[../openclaw/openclaw-rl-telegram|OpenClaw-RL + Telegram 实战：用 Tinker 云训练自己的对话模型]]
+> 📖 **这是论文精读笔记。** 想看实际部署指南？→ [[ai-agent/openclaw/openclaw-rl-telegram|OpenClaw-RL + Telegram 实战：用 Tinker 云训练自己的对话模型]]
 
 ## 核心思路
 

@@ -10,7 +10,7 @@ lang: zh
 english: ai-agent/openclaw/openclaw-rl-telegram.en
 ---
 
-> 🧠 **论文理论部分** → [[../papers-reading/openclaw-rl|OpenClaw-RL：只需交谈就能训练 AI Agent]] | **本篇是实战部署指南**
+> 🧠 **论文理论部分** → [[ai-agent/papers-reading/openclaw-rl|OpenClaw-RL：只需交谈就能训练 AI Agent]] | **本篇是实战部署指南**
 >
 > 关于 OpenClaw-RL 的完整论文精读，见上面的链接。这篇记录实际打通 OpenClaw-RL + Telegram 的操作流程——从零开始部署，让你的 AI Agent 在对话中不断学习进步。
 
