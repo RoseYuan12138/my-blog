@@ -9,6 +9,8 @@ lang: zh
 english: ai-agent/papers-reading/openclaw-rl.en
 ---
 
+> 📖 **这是论文精读笔记。** 想看实际部署指南？→ [[../openclaw/openclaw-rl-telegram|OpenClaw-RL + Telegram 实战：用 Tinker 云训练自己的对话模型]]
+
 ## 核心思路
 
 每次 agent 和环境交互，都会产生 next-state signal——用户的回复、工具的输出、GUI 的状态变化。这些信号里藏着两种信息：**评估信号**（这步做得好不好）和**指导信号**（应该怎么做才对）。现有的 agentic RL 系统基本都只用了前者，而且大多是离线的。OpenClaw-RL 的核心洞察是：把这两种信号统一到一个在线学习框架中，让 agent 在交互过程中实时进化。

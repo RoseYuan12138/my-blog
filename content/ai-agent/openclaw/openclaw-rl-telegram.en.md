@@ -10,7 +10,9 @@ lang: en
 chinese: ai-agent/openclaw/openclaw-rl-telegram
 ---
 
-> For a deep dive into the OpenClaw-RL paper, see [[ai-agent/papers-reading/openclaw-rl.en|OpenClaw-RL: Train Any Agent Simply by Talking]]. This post is a hands-on walkthrough of connecting OpenClaw-RL to Telegram.
+> 🧠 **Paper theory** → [[../papers-reading/openclaw-rl.en|OpenClaw-RL: Train Any Agent Simply by Talking]] | **This post is a hands-on deployment guide**
+>
+> For a deep dive into the OpenClaw-RL paper theory, see the link above. This post documents the complete workflow of connecting OpenClaw-RL to Telegram — starting from zero setup to having your AI Agent continuously improve through conversation.
 
 ## Background
 

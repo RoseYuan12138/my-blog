@@ -9,7 +9,8 @@ lang: en
 chinese: ai-agent/papers-reading/openclaw-rl
 ---
 
-> 🌐 [Read in Chinese](./openclaw-rl.md)
+> 🌐 [Read in Chinese](./openclaw-rl.md)  
+> 📖 **This is a paper reading note.** Want a hands-on deployment guide? → [[../openclaw/openclaw-rl-telegram.en|OpenClaw-RL + Telegram in Practice: Training Your Own Chat Model with Tinker Cloud]]
 
 Paper Reading: [OpenClaw-RL: Train Any Agent Simply by Talking](https://arxiv.org/abs/2603.10165) (Ling Yang et al., 2026)
 
