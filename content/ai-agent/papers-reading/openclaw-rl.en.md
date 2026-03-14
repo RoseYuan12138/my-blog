@@ -97,6 +97,8 @@ where the advantage $\hat{A}$ is computed from binary rewards.
 
 $$\pi_{\text{aug}}(a|s, h) \quad \text{vs} \quad \pi_\theta(a|s)$$
 
+Concrete example: suppose the user's correction is "you should open the file before editing." The original model might assign high probability to "edit directly," but upon seeing this hint, the augmented model increases probability on "open file" and decreases it on "edit directly." This shift in the probability distribution is exactly the "guidance" we want to extract.
+
 **Step 3**: Compute token-level probability differences as directional supervision. For each token $a_i$ in the generated sequence:
 
 $$d_i = \log \pi_{\text{aug}}(a_i | s, h, a_{<i}) - \log \pi_\theta(a_i | s, a_{<i})$$
@@ -131,7 +133,7 @@ Binary RL handles broad-coverage coarse adjustment, while OPD handles narrow-ran
 
 ### 4. Step-wise Rewards for General Agents
 
-For general agents (Terminal, GUI, SWE, Tool-call), OpenClaw-RL integrates outcome reward and process reward:
+The first three methods center on personal agent scenarios, where learning is driven by user feedback collected online. For general agents (Terminal, GUI, SWE, Tool-call), interactions are more structured—each step generates explicit intermediate signals (test results, execution output, etc.). In this setting, OpenClaw-RL takes a different approach, integrating outcome reward and process reward:
 
 $$R_{\text{step}} = \alpha \cdot R_{\text{outcome}} + (1 - \alpha) \cdot R_{\text{process}}$$
 
@@ -155,7 +157,7 @@ The experimental design is clever: it simulates a "student doing homework, teach
 Several noteworthy observations:
 
 - **The combined method dramatically outperforms either method alone by step 8** (0.76 vs 0.25), demonstrating that complementarity kicks in immediately
-- **Binary RL alone actually degrades to 0.23 at step 16**, suggesting potential training instability
+- **Binary RL alone actually degrades to 0.23 at step 16** (down from 0.25 at step 8). This likely reflects a fundamental limitation: pure scalar rewards lack sufficient fine-grained guidance, causing the model to gradually overfit or drift from intended behavior. This empirically validates why token-level OPD supervision is essential
 - **OPD catches up to 0.72 by step 16** but still underperforms the combined method's 0.81
 
 **Qualitative examples**:

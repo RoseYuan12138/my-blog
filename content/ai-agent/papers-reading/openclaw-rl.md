@@ -95,6 +95,8 @@ $$\mathcal{L}_{\text{RL}} = -\mathbb{E}\left[\min\left(\frac{\pi_\theta(a|s)}{\p
 
 $$\pi_{\text{aug}}(a|s, h) \quad \text{vs} \quad \pi_\theta(a|s)$$
 
+具体例子：用户的纠正是"你应该先打开文件再修改"。原始模型可能对"直接修改"有较高的概率，但看到这个提示后，增强模型会对"打开文件"分配更高的概率，对"直接修改"分配更低的概率。这种概率分布的变化就是我们想要的"指导"。
+
 **Step 3**：计算 token 级别的概率差作为方向监督。对于生成序列中的每个 token $a_i$：
 
 $$d_i = \log \pi_{\text{aug}}(a_i | s, h, a_{<i}) - \log \pi_\theta(a_i | s, a_{<i})$$
@@ -129,7 +131,7 @@ Binary RL 负责广覆盖的粗调，OPD 负责窄范围的精调。在有指导
 
 ### 4. 通用 Agent 的 Step-wise Reward
 
-对于通用 agent（Terminal、GUI、SWE、Tool-call），OpenClaw-RL 集成了 outcome reward 和 process reward：
+前三个方法主要围绕 Personal Agent 场景（基于用户反馈的在线学习）。对于通用 agent（Terminal、GUI、SWE、Tool-call），环境交互更加结构化——每一步都有明确的中间反馈（如测试结果、执行输出）。这种情况下，OpenClaw-RL 采用了不同的策略，集成了 outcome reward 和 process reward：
 
 $$R_{\text{step}} = \alpha \cdot R_{\text{outcome}} + (1 - \alpha) \cdot R_{\text{process}}$$
 
@@ -153,7 +155,7 @@ Process reward 的核心价值在于 **credit assignment**：当一个 10 步的
 几个值得注意的现象：
 
 - **Combined 方法在 8 步时就远超单独使用的任一方法**（0.76 vs 0.25），说明互补性从一开始就在起作用
-- Binary RL 单独使用时在 16 步反而下降到 0.23，可能存在训练不稳定的问题
+- **Binary RL 单独使用时在 16 步反而下降到 0.23**（从 8 步的 0.25 下降），这可能反映了一个问题：纯粹的标量奖励缺乏足够的细粒度指导，导致模型在学习过程中逐渐过拟合或偏离预期方向。这也正说明了为什么需要 OPD 的 token 级别监督
 - OPD 在后期（16 步）追上来到 0.72，但仍不如 Combined 的 0.81
 
 **质变的例子**：
