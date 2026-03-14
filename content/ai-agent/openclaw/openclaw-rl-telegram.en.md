@@ -22,15 +22,15 @@ Repository: **https://github.com/Gen-Verse/OpenClaw-RL**
 
 ## What is Tinker
 
-[Tinker](https://tinker-docs.thinkingmachines.ai/) is a distributed training API designed for LLM fine-tuning. Its core idea is abstracting away the infrastructure complexity of distributed GPU training — you write simple Python scripts on a local CPU machine specifying your training logic and loss functions, and Tinker manages the actual distributed computation in the cloud. It provides three core primitives: `forward_backward()` (gradient computation), `optim_step()` (model updates), and `sample()` (output generation), supporting LoRA fine-tuning of open-source models like Qwen and Llama.
+[Tinker](https://tinker-docs.thinkingmachines.ai/) is a distributed LLM fine-tuning API. Core value: local CPU machine + cloud GPU, with Tinker abstracting away the complexity of distributed training. You can run a lightweight proxy on your Mac mini and have it forward inference and LoRA training requests to Tinker cloud.
 
-OpenClaw-RL leverages Tinker's capabilities to build a complete conversational RL training pipeline (the Personal Agent track from the [[ai-agent/papers-reading/openclaw-rl.en|paper]]):
+OpenClaw-RL leverages Tinker to implement a complete conversational RL pipeline (the Personal Agent track from the [[ai-agent/papers-reading/openclaw-rl.en|paper]]):
 
-- **Inference**: When you send a message on Telegram, the request goes through the local proxy to Tinker cloud, which generates a response (via `sample()`)
-- **Training data collection**: Conversations are automatically collected by OpenClaw-Tinker as training samples
-- **RL training**: Once a batch is full, a LoRA RL update step runs in the cloud (via `forward_backward()` + `optim_step()`)
+1. **Inference**: Telegram message → OpenClaw Gateway → local proxy → Tinker cloud (cloud model generates reply)
+2. **Data collection**: Conversations are automatically collected by OpenClaw-Tinker as training samples
+3. **RL training**: Once a batch is full, one step of LoRA RL update runs in the cloud
 
-OpenClaw-RL supports OPD (Online Policy Distillation), RL (reinforcement learning), and combine (both together) as training methods, with combine performing best. For details on how these methods work and their experimental comparison, see the [[ai-agent/papers-reading/openclaw-rl.en#Learning Methods|learning methods section in the paper notes]].
+OpenClaw-RL supports three training methods: OPD (online distillation), RL (reinforcement learning), and combine (both together). The combine method works best. For details on how these methods work and their experimental comparison, see the [[ai-agent/papers-reading/openclaw-rl.en#Learning Methods|learning methods section in the paper notes]].
 
 ### Supported Models on Tinker
 
