@@ -21,6 +21,7 @@ title: 推荐系统
 推荐系统从离线模型到线上服务的部署与优化。
 
 - [[serving-profile-guide|推荐系统线上 Profile 指南：从数据采样到向量召回]]
+- [[ai-agent-ranking-optimization|Sortify：当 AI Agent 接管推荐系统的排序优化]]
 
 ## 论文精读（Papers Reading）
 
