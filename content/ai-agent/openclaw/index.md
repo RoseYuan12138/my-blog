@@ -26,11 +26,15 @@ title: OpenClaw 系列
 → [给博客猫教一个新技能：论文精读](./openclaw-paper-reading-skill.md)
 怎么用 SKILL.md 给 Agent 定义新的工作流，以论文精读为例。
 
-**⑤ 优化和省钱**
+**⑤ 进阶应用：强化学习自训练**
+→ [OpenClaw-RL + Telegram 实战：用 Tinker 云训练自己的对话模型](./openclaw-rl-telegram.md)
+让 Agent 不再依赖 Claude API，改用自训练模型。完整打通 OpenClaw-RL + Telegram 的操作流程，Mac mini + Tinker 云平台。
+
+**⑥ 优化和省钱**
 → [OpenClaw 多 Agent 系统优化：省钱、提速、瘦身](./openclaw-agent-optimization.md)
 跑起来之后，怎么控制 token 消耗、选择合适的模型、减少不必要的 LLM 调用。
 
-**⑥ 架构设计文档**
+**⑦ 架构设计文档**
 → [OpenClaw 架构 v2：Memory 分层、Skill 体系、启动文件瘦身](./openclaw-architecture-v2.md)
 深度优化：记忆系统三层分层（什么时候存、什么时候取）、Agent 职责瘦身、Skill 体系、Heartbeat 再调优。
 
