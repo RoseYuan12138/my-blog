@@ -637,10 +637,16 @@ function animate(){
       if(keys['KeyA'])camera.position.addScaledVector(rt,-speed);if(keys['KeyD'])camera.position.addScaledVector(rt,speed);
       if(keys['Space'])camera.position.y+=speed;if(keys['ShiftLeft']||keys['ShiftRight'])camera.position.y-=speed;
     }
-    let nearest=null,nearDist=Infinity;for(const p of planets){const d=camera.position.distanceTo(p.group.position);if(d<nearDist){nearDist=d;nearest=p;}}
-    const sd=camera.position.length();
-    if(sd<nearDist){infoEl.innerHTML=`Sun<br>${(sd/AU).toFixed(2)} AU`;labelEl.textContent=sd<200?'Sun':'';labelEl.style.opacity=sd<200?'1':'0';}
-    else if(nearest){infoEl.innerHTML=`${nearest.name}<br>${(nearDist/AU).toFixed(2)} AU away`;labelEl.textContent=nearDist<nearest.radius*8?nearest.name:'';labelEl.style.opacity=nearDist<nearest.radius*8?'1':'0';}
+    // Info display: show tracked target name, or nearest planet
+    if(trackTarget){
+      infoEl.innerHTML=`${trackTarget.name}<br>Orbiting`;
+      labelEl.textContent=trackTarget.name;labelEl.style.opacity='1';
+    } else {
+      let nearest=null,nearDist=Infinity;for(const p of planets){const d=camera.position.distanceTo(p.group.position);if(d<nearDist){nearDist=d;nearest=p;}}
+      const sd=camera.position.length();
+      if(sd<nearDist){infoEl.innerHTML=`Sun<br>${(sd/AU).toFixed(2)} AU`;labelEl.textContent=sd<200?'Sun':'';labelEl.style.opacity=sd<200?'1':'0';}
+      else if(nearest){infoEl.innerHTML=`${nearest.name}<br>${(nearDist/AU).toFixed(2)} AU away`;labelEl.textContent=nearDist<nearest.radius*8?nearest.name:'';labelEl.style.opacity=nearDist<nearest.radius*8?'1':'0';}
+    }
   }
 
   // ==== LANDING TRANSITION ====
