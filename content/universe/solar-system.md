@@ -55,4 +55,4 @@ lang: zh
 
 ---
 
-[点击打开 Solar System](./solar-system/index.html)
+[点击打开 Solar System](/universe/solar-system/)
