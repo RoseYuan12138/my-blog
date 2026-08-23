@@ -16,3 +16,9 @@ title: 机器学习
 
 - [[deberta-disentangled-attention|DeBERTa：解纠缠注意力机制的威力]]
 - [[flash-attention-varlen|Flash-Attention：处理变长序列的高效注意力]]
+
+## 世界模型（World Models）
+
+关注潜变量动力学、状态空间模型与基于想象的决策学习。
+
+- [[world-models/what-is-a-real-rssm|什么才是完整的 RSSM？从 deterministic GRU 到随机状态空间模型]]
