@@ -17,6 +17,12 @@ title: 机器学习
 - [[deberta-disentangled-attention|DeBERTa：解纠缠注意力机制的威力]]
 - [[flash-attention-varlen|Flash-Attention：处理变长序列的高效注意力]]
 
+## 图神经网络（Graph Neural Networks）
+
+从消息传递、图注意力到全局图 Transformer，理解节点之间的信息传播方式。
+
+- [[gnn-gat-graph-transformer|从 GNN、GCN、GAT 到 Graph Transformer：图上的信息如何传播？]]
+
 ## 世界模型（World Models）
 
 关注潜变量动力学、状态空间模型与基于想象的决策学习。

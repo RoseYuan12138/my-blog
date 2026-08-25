@@ -26,6 +26,7 @@ title: Rose's Knowledge Base
 
 ## 最新更新
 
+- **2026-08-25**: [[machine-learning/gnn-gat-graph-transformer|从 GNN、GCN、GAT 到 Graph Transformer]]——消息传递、图注意力、局部与全局 Graph Transformer
 - **2026-08-23**: [[machine-learning/world-models/what-is-a-real-rssm|什么才是完整的 RSSM？]]——区分 deterministic GRU 与 variational RSSM
 - **2026-03-14**: OpenClaw-RL 论文精读笔记 + 云训练实战指南
 - **2026-03-13**: AI 资讯整理（每日更新）
