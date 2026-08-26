@@ -6,6 +6,10 @@ title: OpenClaw 系列
 
 用 OpenClaw 把 AI 从聊天工具变成真正的个人 Agent 系统——从零搭建，到深度优化。
 
+> [!note] 代码已开源
+> 后来我又对这套系统进行了修改和整理，并将脱敏后的四 Agent 架构、配置模板、Cron 示例和 Skills 开源了：
+> [RoseYuan12138/openclaw-multi-agent-system](https://github.com/RoseYuan12138/openclaw-multi-agent-system)
+
 ---
 
 ## 📖 推荐阅读顺序
