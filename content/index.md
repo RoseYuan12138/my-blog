@@ -22,10 +22,14 @@ title: Rose's Knowledge Base
 ### 机器学习基础
 - [[machine-learning/index|完整系列导航]]
 
+### 算法
+- [[algorithms/index|LeetCode、数据结构与常见算法笔记]]
+
 ---
 
 ## 最新更新
 
+- **2026-08-27**: [[algorithms/reservoir-sampling|水塘采样：入选均匀，为什么输出位置仍可能有偏？]]——集合均匀性、槽位偏置与完整概率推导
 - **2026-08-25**: [[machine-learning/gnn-gat-graph-transformer|从 GNN、GCN、GAT 到 Graph Transformer]]——消息传递、图注意力、局部与全局 Graph Transformer
 - **2026-08-23**: [[machine-learning/world-models/what-is-a-real-rssm|什么才是完整的 RSSM？]]——区分 deterministic GRU 与 variational RSSM
 - **2026-03-14**: OpenClaw-RL 论文精读笔记 + 云训练实战指南
