@@ -4,6 +4,12 @@ title: 机器学习
 
 机器学习基础、优化技巧、架构改进的学习笔记。
 
+## 具身智能与机器人（Embodied AI & Robotics）
+
+关注机器人基础模型、视觉—语言—动作策略，以及机器人如何通过上下文快速适应新任务。
+
+- [[in-context-learning-for-robotics|机器人 In-Context Learning：看一遍就会，究竟算不算学习？]]
+
 ## 调试与优化（Debugging）
 
 当模型训练出现异常时的诊断和修复方法。
