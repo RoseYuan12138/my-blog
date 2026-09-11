@@ -19,3 +19,8 @@ title: AI Agent
 → [查看全部](./papers-reading/index.md)
 
 深度精读 AI Agent 领域的经典论文和最新研究。
+
+## 研究工作流
+
+- [[ai-agent/working-with-ai-research-workflow|与 AI 一起做研究：分工、记忆与持续改进]]
+- [[ai-agent/working-with-ai-research-workflow.en|Working with AI: A Practical Research Workflow (English)]]

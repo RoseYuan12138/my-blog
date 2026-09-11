@@ -37,6 +37,8 @@ title: Rose's Knowledge Base
 
 ## 最新更新
 
+- **2026-09-11**: [[ai-agent/working-with-ai-research-workflow|与 AI 一起做研究]]——角色分工、三类记忆、工作流修复与简化，中英双语及原文配图
+
 - **2026-08-29**: [[recommender-systems/index|推荐系统知识体系扩展]]——新增 24 篇文章，系统覆盖基础架构、LRM Scaling、生成式推荐和直播推荐
 - **2026-08-27**: [[algorithms/reservoir-sampling|水塘采样：入选均匀，为什么输出位置仍可能有偏？]]——集合均匀性、槽位偏置与完整概率推导
 - **2026-08-25**: [[machine-learning/gnn-gat-graph-transformer|从 GNN、GCN、GAT 到 Graph Transformer]]——消息传递、图注意力、局部与全局 Graph Transformer
