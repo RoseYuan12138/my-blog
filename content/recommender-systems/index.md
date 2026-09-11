@@ -34,6 +34,7 @@ Semantic ID 与生成式推荐
 ## 生成式推荐（Generative Recommendation）
 
 - [[generative-recommendation/index|专题导航：从 Semantic ID 到推荐推理]]
+- [[generative-recommendation/gr-evolution-and-classic-papers|生成式推荐迭代脉络与经典论文（2026）]]
 - [[generative-recommendation/semantic-id-foundations|Semantic ID：生成式推荐的词表]]
 - [[generative-recommendation/tiger-generative-retrieval|TIGER：生成式检索的起点]]
 - [[generative-recommendation/onerec-unified-recommendation|OneRec：统一召回与排序]]

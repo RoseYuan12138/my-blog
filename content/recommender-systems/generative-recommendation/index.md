@@ -4,6 +4,10 @@ title: 生成式推荐
 
 生成式推荐把“从候选库中打分”改写为“生成目标物品的离散标识”。这个专题从词表、Tokenizer、模型架构、约束解码一路讲到偏好对齐与推荐推理。
 
+## 全景导读
+
+- [[gr-evolution-and-classic-papers|生成式推荐迭代脉络与经典论文：从 TIGER 到统一用户理解]]
+
 ## 学习路径
 
 1. [[semantic-id-foundations|Semantic ID：生成式推荐的词表]]
